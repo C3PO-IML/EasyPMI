@@ -16,8 +16,7 @@ pip install numpy scipy streamlit matplotlib reportlab
 
 Usage
 Clone the Repository:
-git clone https://github.com/yourusername/post-mortem-interval-calculator.git
-cd post-mortem-interval-calculator
+git clone https://github.com/C3PO-IML/EasyPMI.git
 
 Run the Application:
 streamlit run EasyPMI.py
