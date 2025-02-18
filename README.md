@@ -44,13 +44,13 @@ The code is structured into several functions and sections:
 -**User Interface Management Functions**: Functions for managing the user interface, including resetting fields and calculating results.  
 -**PDF Generation Function**: Function for generating a PDF report of the results.
 
-###Contributing
+### Contributing
 Contributions are welcome! If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request.
 
-###License
+### License
 This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
 
-###Acknowledgments
+### Acknowledgments
 The methods and empirical data used in this application are based on the work of Henssge and Baccino, as well as other forensic science research.
 Special thanks to the contributors and maintainers of the libraries used in this project.
 Contact
