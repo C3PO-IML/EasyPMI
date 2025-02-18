@@ -509,7 +509,6 @@ def estimate_pmi(reaction_type: str, intervals: dict) -> tuple:
     -------
     tuple
         A tuple containing (min_time, max_time) in hours.
-        If the reaction_type is not found in intervals, returns (0, inf)
     """
     return intervals.get(reaction_type)
 
