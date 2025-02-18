@@ -486,18 +486,18 @@ def calculate_baccino(t_tympanic: float, t_ambient: float) -> tuple:
     CI_global = PMI_global * 0.4
     return PMI_interval, PMI_global, CI_interval, CI_global
 
-def estimate_pmi(idiomuscular_reaction_type: str, intervals: dict) -> tuple:
+def estimate_pmi(reaction_type: str, intervals: dict) -> tuple:
     """
-    Retrieves the post-mortem time interval corresponding to a given reaction type.
+    Retrieves the time interval corresponding to a given reaction type.
 
     This function obtains the temporal bounds (minimum and maximum) associated with
-    a specific post-mortem reaction or sign. These intervals are used to estimate
-    the post-mortem interval (PMI - Post Mortem Interval) based on thanatological observations.
+    a specific reaction or sign. These intervals are used to estimate the time
+    based on observations.
 
     Parameters
     ----------
-    idiomuscular_reaction_type : str
-        Identifier or description of the observed post-mortem reaction or sign type
+    reaction_type : str
+        Identifier or description of the observed reaction or sign type
         (e.g., 'rigor', 'lividity', 'temperature', etc.)
 
     intervals : dict
@@ -509,26 +509,8 @@ def estimate_pmi(idiomuscular_reaction_type: str, intervals: dict) -> tuple:
     -------
     tuple
         A tuple containing (min_time, max_time) in hours.
-        If the idiomuscular_reaction_type is not found in intervals, returns (0, inf)
-
-    Examples
-    --------
-    >>> intervals = {
-    ...     'rigor_start': (2, 6),
-    ...     'rigor_complete': (8, 12),
-    ...     'lividity_mobile': (0, 12),
-    ... }
-    >>> min_time, max_time = estimate_pmi('rigor_start', intervals)
-    >>> print(f"Estimated interval: between {min_time}h and {max_time}h")
-
-    Notes
-    -----
-    - The function uses the .get() method of dictionaries, which allows specifying
-      a default value (here (0, float('inf'))) if the key is not found
-    - This function is typically used in a broader context of estimating the post-mortem
-      interval based on multiple thanatological signs
     """
-    return intervals.get(idiomuscular_reaction_type, (0, float('inf')))
+    return intervals.get(reaction_type)
 
 # Plotting functions
 def plot_temperature_henssge_rectal(t_rectal: float, t_ambient: float, M: float, Cf: float, t_max: float, t_min: float, corrected_pmi: float) -> Figure:
@@ -922,7 +904,7 @@ def calculate_results() -> None:
         t_rectal = convert_decimal_separator(st.session_state.input_t_rectal) if st.session_state.input_t_rectal else None
         t_ambient = convert_decimal_separator(st.session_state.input_t_ambient) if st.session_state.input_t_ambient else None
         M = convert_decimal_separator(st.session_state.input_M) if st.session_state.input_M else None
-        idiomuscular_reaction_type = st.session_state.reaction
+        idiomuscular_reaction_type = st.session_state.idiomuscular_reaction
         rigor_type = st.session_state.rigor
         lividity_type = st.session_state.lividity
         lividity_disappearance = st.session_state.lividity_disappearance
@@ -1174,7 +1156,7 @@ def generate_pdf() -> bytes:
         f"Corrective factor : {st.session_state.input_Cf or 'Not specified'}",
         f"Body condition : {st.session_state.body_condition or 'Not specified'}",
         f"Environment : {st.session_state.environment or 'Not specified'}",
-        f"Supporting base : {st.session_state.supporting_base or 'Not specified'}"
+        f"Supporting base : {st.session_state.supporting_base or 'Not specified'}",
         f"Idiomuscular reaction : {st.session_state.idiomuscular_reaction or 'Not specified'}",
         f"Rigor : {st.session_state.rigor or 'Not specified'}",
         f"Lividity : {st.session_state.lividity or 'Not specified'}",
@@ -1342,7 +1324,7 @@ with st.expander("Help and User Guide", expanded=True):
         ##### Error Handling
         If you encounter errors, check that input values are within acceptable ranges.
         The application will guide you with specific error messages.  
-        In case of difficulties, you can contact us by sending the error message for correction of any potential bugs.
+        In case of difficulties, you can contact us by sending the error message for correction of any potential bugs. 
         """)
         
     with tab2:
@@ -1513,7 +1495,7 @@ st.sidebar.header("Thanatological Signs")
 st.sidebar.selectbox(
     "Idiomuscular Reaction :",
     ['Not specified', 'zsako', 'strong reversible', 'weak persistent', 'no reaction'],
-    key="reaction"
+    key="idiomuscular_reaction"
 )
 
 st.sidebar.selectbox(
@@ -1570,5 +1552,3 @@ if st.session_state.fig_henssge_brain:
     st.pyplot(st.session_state.fig_henssge_brain)
 if st.session_state.fig_comparison:
     st.pyplot(st.session_state.fig_comparison)
-
-
