@@ -1174,7 +1174,7 @@ def generate_pdf() -> bytes:
         f"Corrective factor : {st.session_state.input_Cf or 'Not specified'}",
         f"Body condition : {st.session_state.body_condition or 'Not specified'}",
         f"Environment : {st.session_state.environment or 'Not specified'}",
-        f"Supporting base : {st.session_state.supporting_base or 'Not specified'}"
+        f"Supporting base : {st.session_state.supporting_base or 'Not specified'}",
         f"Idiomuscular reaction : {st.session_state.idiomuscular_reaction or 'Not specified'}",
         f"Rigor : {st.session_state.rigor or 'Not specified'}",
         f"Lividity : {st.session_state.lividity or 'Not specified'}",
@@ -1342,7 +1342,7 @@ with st.expander("Help and User Guide", expanded=True):
         ##### Error Handling
         If you encounter errors, check that input values are within acceptable ranges.
         The application will guide you with specific error messages.  
-        In case of difficulties, you can contact us by sending the error message for correction of any potential bugs.
+        In case of difficulties, you can contact us by sending the error message for correction of any potential bugs. 
         """)
         
     with tab2:
