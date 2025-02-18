@@ -10,7 +10,7 @@ Graphical Visualization: Provides plots for thermal decay curves and comparative
 PDF Report Generation: Generates a PDF report of the results for easy sharing and documentation.
 
 Installation
-To run the application, you need to have Python installed on your system. Additionally, you need to install the required Python packages. You can install them using pip:
+To run the application locally, you need to have Python installed on your system. Additionally, you need to install the required Python packages. You can install them using pip:
 
 pip install numpy scipy streamlit matplotlib reportlab
 
