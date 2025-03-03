@@ -38,7 +38,7 @@ def compute_rectal(input_parameters) -> HenssgeRectalResults:
                 return HenssgeRectalResults(error_message = "Convergence error")
 
         thermal_quotient = compute_thermal_quotient(input_parameters.rectal_temperature, input_parameters.ambient_temperature)
-        confidence_interval = _adjust_confidence_interval_rectal(thermal_quotient, corrective_factor_not_equals_1 = (corrective_factor != 1.0))
+        confidence_interval = _adjust_confidence_interval_rectal(thermal_quotient, corrective_factor)
 
     except ValueError as e:
         return HenssgeRectalResults(error_message = str(e))
@@ -59,7 +59,7 @@ def compute_brain(input_parameters) -> HenssgeBrainResults:
     """
     return HenssgeBrainResults()
 
-def _adjust_confidence_interval_rectal(thermal_quotient: float, corrective_factor_not_equals_1: bool = False) -> float:
+def _adjust_confidence_interval_rectal(thermal_quotient: float, corrective_factor: float) -> float:
     """
     Determines the 95% confidence interval for the Henssge equation (not the brain version).
 
@@ -67,20 +67,22 @@ def _adjust_confidence_interval_rectal(thermal_quotient: float, corrective_facto
     ----------
     thermal_quotient : float
         Thermal quotient calculated according to the above equation
-    corrective_factor_not_equals_1 : bool, optional
-        Indicates whether a corrective_factor other than 1 is applied (default is False)
+    corrective_factor : float
+        Corrective factor
 
     Returns
     -------
     float
         Confidence interval in hours
     """
+    corrective_factor_not_1 = not np.isclose(corrective_factor, 1.0)
+    
     if 1 > thermal_quotient > 0.5:
         return 2.8
     elif 0.5 > thermal_quotient > 0.3:
-        return 4.5 if corrective_factor_not_equals_1 else 3.2
+        return 4.5 if corrective_factor_not_1 else 3.2
     elif 0.3 > thermal_quotient > 0.2:
-        return 7.0 if corrective_factor_not_equals_1 else 4.5
+        return 7.0 if corrective_factor_not_1 else 4.5
     return 7.0
 
 def _rectal_equation(time_since_death: float, rectal_temperature: float, ambient_temperature: float, body_mass: float) -> float:
