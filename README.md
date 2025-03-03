@@ -10,14 +10,16 @@ The application leverages numerical methods and empirical data to provide accura
 -**PDF Report Generation**: Generates a PDF report of the results for easy sharing and documentation.  
 
 ### Installation
-To run the application locally, you need to have Python installed on your system. Additionally, you need to install the required Python packages. You can install them using pip:
-```bash
-pip install numpy scipy streamlit matplotlib reportlab
-```
+To run the application locally, you need to have Python installed on your system (this apllication was developed with python 3.13.2).  
 
 Clone the Repository:
 ```bash
 git clone https://github.com/C3PO-IML/EasyPMI.git
+```
+
+Install the required Python packages :
+```bash
+pip install -r requirements.txt
 ```
 
 Run Application:
