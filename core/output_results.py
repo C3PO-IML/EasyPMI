@@ -3,25 +3,17 @@ from datetime import datetime, timedelta
 
 
 class HenssgeRectalResults:
+    
     # Constructors
-    def __init__(self, error_message: str):
-        """
-        
-        Parameters
-        ----------
-        error_message
-        """
-        self.estimated_death_time = None
-        self.confidence_interval = None
-        self.thermal_quotient = float('nan')
-        self.error_message = error_message
     def __init__(
             self,
-            estimated_death_time: datetime,
-            confidence_interval: timedelta,
-            thermal_quotient: float
+            estimated_death_time: datetime = None,
+            confidence_interval: timedelta = None,
+            thermal_quotient: float = float('nan'),
+            error_message: str = None
     ):
-        """
+        """        
+        Object encapsulating Henssge rectal output results
         
         Parameters
         ----------

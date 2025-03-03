@@ -35,13 +35,13 @@ def compute_rectal(input_parameters) -> HenssgeRectalResults:
             try:
                 death_time = fsolve(_rectal_equation, t_initial, args=(input_parameters.rectal_temperature, input_parameters.ambient_temperature, input_parameters.body_mass * corrective_factor))[0]
             except RuntimeWarning:
-                return HenssgeRectalResults(f"**Henssge Method (Rectal) :**\nConvergence error.\n\n")
+                return HenssgeRectalResults(error_message = "Convergence error")
 
         thermal_quotient = compute_thermal_quotient(input_parameters.rectal_temperature, input_parameters.ambient_temperature)
         confidence_interval = _adjust_confidence_interval_rectal(thermal_quotient, corrective_factor_not_equals_1 = (corrective_factor != 1.0))
 
     except ValueError as e:
-        return HenssgeRectalResults(f"**Henssge Method (Rectal) :**\n{e}\n\n")
+        return HenssgeRectalResults(error_message = str(e))
 
     return HenssgeRectalResults(death_time, confidence_interval, thermal_quotient)
 
