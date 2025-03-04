@@ -1,13 +1,9 @@
-import numpy as np
-import warnings
-from scipy.optimize import fsolve
-
 from core.computations import henssge_rectal, henssge_brain, baccino, idiomuscular_reaction, lividity, lividity_disappearance, lividity_mobility, rigor
 from core.input_parameters import InputParameters
 from core.output_results import OutputResults
 
 
-def compute(input_parameters: InputParameters) -> OutputResults:
+def run(input_parameters: InputParameters) -> OutputResults:
     """
     Compute using different methods for estimating the post-mortem interval (PMI).
     It also handles errors and warnings in case of missing or unusable values.
