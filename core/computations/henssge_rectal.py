@@ -35,7 +35,7 @@ def compute(input_parameters) -> HenssgeRectalResults:
         input_parameters.user_corrective_factor,
         input_parameters.body_mass
     )
-        
+
     # Try computation
     try:
         # Compute PMI
@@ -85,21 +85,27 @@ def _validate_input(input_parameters: InputParameters) -> tuple:
 
     # Verification of temperature limits
     ambient_limits = TEMPERATURE_LIMITS.get(TemperatureLimitsType.AMBIENT)
-    if not (ambient_limits[0] <= input_parameters.ambient_temperature <= ambient_limits[1]):
+    if not input_parameters.ambient_temperature:
+        error_message.append(f"The ambient temperature is absent and must be between {ambient_limits[0]}°C and {ambient_limits[1]}°C.")
+    elif not (ambient_limits[0] <= input_parameters.ambient_temperature <= ambient_limits[1]):
         error_message.append(
             f"The ambient temperature ({input_parameters.ambient_temperature}°C) is not valid and must be between {ambient_limits[0]}°C and {ambient_limits[1]}°C.")
 
     rectal_limits = TEMPERATURE_LIMITS.get(TemperatureLimitsType.RECTAL)
-    if not (rectal_limits[0] <= input_parameters.rectal_temperature <= rectal_limits[1]):
+    if not input_parameters.rectal_temperature:
+        error_message.append(f"The rectal temperature is absent and must be between {rectal_limits[0]}°C and {rectal_limits[1]}°C.")
+    elif not (rectal_limits[0] <= input_parameters.rectal_temperature <= rectal_limits[1]):
         error_message.append(f"The rectal temperature ({input_parameters.rectal_temperature}°C) is not valid and must be between {rectal_limits[0]}°C and {rectal_limits[1]}°C.")
 
     # Verification of body mass limits
-    if not (BODY_MASS_LIMIT[0] <= input_parameters.body_mass <= BODY_MASS_LIMIT[1]):
+    if not input_parameters.body_mass:
+        error_message.append(f"The body mass is absent and must be between {BODY_MASS_LIMIT[0]}kg and {BODY_MASS_LIMIT[1]}kg.")
+    elif not (BODY_MASS_LIMIT[0] <= input_parameters.body_mass <= BODY_MASS_LIMIT[1]):
         error_message.append(f"The body mass ({input_parameters.body_mass}kg) is not valid and must be between {BODY_MASS_LIMIT[0]}kg and {BODY_MASS_LIMIT[1]}kg.")
 
     # Raise error if some values are not valid
     if len(error_message) > 0:
-        raise ValueError('\n'.join(error_message))
+        return False, '\n'.join(error_message)
 
     # Returns true if everything is valid
     return True, None
@@ -155,7 +161,7 @@ def _equation(post_mortem_interval: float, rectal_temperature: float, ambient_te
     """
     k = (1.2815 / body_mass ** 0.625) - 0.0284
     thermal_quotient = compute_thermal_quotient(rectal_temperature, ambient_temperature)
-    
+
     if ambient_temperature <= 23:
         return thermal_quotient - (1.25 * np.exp(-k * post_mortem_interval) - 0.25 * np.exp(-5 * k * post_mortem_interval))
     else:

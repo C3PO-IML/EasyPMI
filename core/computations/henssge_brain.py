@@ -71,18 +71,22 @@ def _validate_input(input_parameters: InputParameters) -> tuple:
 
     # Verification of temperature limits
     tympanic_limits = TEMPERATURE_LIMITS.get(TemperatureLimitsType.TYMPANIC)
-    if not (tympanic_limits[0] <= input_parameters.tympanic_temperature <= tympanic_limits[1]):
+    if not input_parameters.tympanic_temperature:
+        error_message.append(f"The tympanic temperature is absent and must be between {tympanic_limits[0]}°C and {tympanic_limits[1]}°C.")
+    elif not (tympanic_limits[0] <= input_parameters.tympanic_temperature <= tympanic_limits[1]):
         error_message.append(
             f"The tympanic temperature ({input_parameters.tympanic_temperature}°C) is not valid and must be between {tympanic_limits[0]}°C and {tympanic_limits[1]}°C.")
 
     ambient_limits = TEMPERATURE_LIMITS.get(TemperatureLimitsType.AMBIENT)
-    if not (ambient_limits[0] <= input_parameters.ambient_temperature <= ambient_limits[1]):
+    if not input_parameters.ambient_temperature:
+        error_message.append(f"The ambient temperature is absent and must be between {ambient_limits[0]}°C and {ambient_limits[1]}°C.")
+    elif not (ambient_limits[0] <= input_parameters.ambient_temperature <= ambient_limits[1]):
         error_message.append(
             f"The ambient temperature ({input_parameters.ambient_temperature}°C) is not valid and must be between {ambient_limits[0]}°C and {ambient_limits[1]}°C.")
 
     # Raise error if some values are not valid
     if len(error_message) > 0:
-        raise ValueError('\n'.join(error_message))
+        return False, '\n'.join(error_message)
 
     # Returns true if everything is valid
     return True, None
