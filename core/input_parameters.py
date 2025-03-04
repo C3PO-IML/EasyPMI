@@ -61,3 +61,32 @@ class InputParameters:
         self.lividity_disappearance = lividity_disappearance
         self.lividity_mobility = lividity_mobility
         self.user_corrective_factor = user_corrective_factor
+
+    def __str__(self):
+        members = []
+        if self.tympanic_temperature:
+            members.append(f"tympanic_temperature = {self.tympanic_temperature}°C")
+        if self.rectal_temperature:
+            members.append(f"rectal_temperature = {self.rectal_temperature}°C")
+        if self.ambient_temperature:
+            members.append(f"ambient_temperature = {self.ambient_temperature}°C")
+        if self.body_mass:
+            members.append(f"body_mass = {self.body_mass}kg")
+        if self.environment:
+            members.append(f"environment = {self.environment}")
+        if self.supporting_base:
+            members.append(f"supporting_base = {self.supporting_base}")
+        if self.idiomuscular_type:
+            members.append(f"idiomuscular_type = {self.idiomuscular_type}")
+        if self.rigor_type:
+            members.append(f"rigor_type = {self.rigor_type}")
+        if self.lividity_type:
+            members.append(f"lividity_type = {self.lividity_type}")
+        if self.lividity_disappearance:
+            members.append(f"lividity_disappearance = {self.lividity_disappearance}")
+        if self.lividity_mobility:
+            members.append(f"lividity_mobility = {self.lividity_mobility}")
+        if self.user_corrective_factor:
+            members.append(f"user_corrective_factor = {self.user_corrective_factor}")
+            
+        return '\n'.join(members)
