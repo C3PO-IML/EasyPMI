@@ -3,11 +3,11 @@ from datetime import datetime, timedelta
 
 
 class HenssgeRectalResults:
-    
+
     # Constructors
     def __init__(
             self,
-            estimated_death_time: datetime = None,
+            post_mortem_interval: timedelta = None,
             confidence_interval: timedelta = None,
             thermal_quotient: float = float('nan'),
             error_message: str = None
@@ -17,35 +17,36 @@ class HenssgeRectalResults:
         
         Parameters
         ----------
-        estimated_death_time
+        post_mortem_interval
         confidence_interval
         thermal_quotient
+        error_message
         """
-        self.estimated_death_time = estimated_death_time
+        self.post_mortem_interval = post_mortem_interval
         self.confidence_interval = confidence_interval
         self.thermal_quotient = thermal_quotient
-        self.error_message = None
+        self.error_message = error_message
 
 
 class HenssgeBrainResults:
     # Constructor
     def __init__(
             self,
-            estimated_death_time: datetime,
-            confidence_interval: timedelta,
-            thermal_quotient: float
+            post_mortem_interval: timedelta = None,
+            confidence_interval: timedelta = None,
+            error_message: str = None
     ):
         """
         
         Parameters
         ----------
-        estimated_death_time
+        post_mortem_interval
         confidence_interval
-        thermal_quotient
+        error_message
         """
-        self.thermal_quotient = thermal_quotient
         self.confidence_interval = confidence_interval
-        self.estimated_death_time = estimated_death_time
+        self.post_mortem_interval = post_mortem_interval
+        self.error_message = error_message
 
 
 class OutputResults:
@@ -53,3 +54,4 @@ class OutputResults:
     # Constructor
     def __init__(self):
         self.henssge_rectal: Optional[HenssgeRectalResults] = None
+        self.henssge_brain: Optional[HenssgeBrainResults] = None
