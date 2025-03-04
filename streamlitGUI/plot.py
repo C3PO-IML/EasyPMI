@@ -153,25 +153,36 @@ def _add_mustache_box(ax: plt.Axes, vertical_index: int, left: float, right: flo
 
 
 # Zone boxes
-def _add_zone_box(ax: plt.Axes, vertical_index: int, position: float, side: str) -> None:
+def _add_zone_box(ax: plt.Axes, vertical_index: int, position: float, valid_side: str) -> None:
     color = _pick_color(vertical_index)
-    ax.axvspan(vertical_index, position, color=color, alpha=0.5)
-    ax.axvline(x=position, color=color, linestyle='--', lw=2)
+    x_min, x_max = ax.get_xlim()
+    
+    left = 0.0
+    right = 0.0
     text = ""
-    if side == 'right':
-        text = f"PMI < {format_time(position)}"
-    elif side == 'left':
+    direction = ""
+    if valid_side == 'upper':
         text = f"PMI > {format_time(position)}"
+        direction = 'right'
+        left = position
+        right = x_max
+    elif valid_side == 'lower':
+        text = f"PMI < {format_time(position)}"
+        direction = 'left'
+        left = x_min
+        right = position
 
-    ax.text(position, vertical_index, text, ha=side, va='bottom', fontsize=8, color=color)
+    ax.axvspan(xmin=left, xmax=right, color=color, alpha=0.2)
+    ax.axvline(x=position, color=color, linestyle='--', lw=2)
+    ax.text(position, vertical_index, text, ha=direction, va='bottom', fontsize=8, color=color)
 
 
 # PostMortemInterval plots
 def _plot_post_mortem_interval_result(ax: plt.Axes, vertical_index: int, result: PostMortemIntervalResults) -> None:
     if result.min == 0.0:
-        _add_zone_box(ax, vertical_index, position=result.max, side='right')
+        _add_zone_box(ax, vertical_index, position=result.max, valid_side='lower')
     elif result.max == float('inf'):
-        _add_zone_box(ax, vertical_index, position=result.min, side='left')
+        _add_zone_box(ax, vertical_index, position=result.min, valid_side='upper')
     if result.min != 0.0 and result.max != float('inf'):
         _add_mustache_box(ax, vertical_index, left=result.min, right=result.max)
 
@@ -302,7 +313,6 @@ def plot_comparative_pmi_results(result: OutputResults) -> Figure:
     ax.set_title('Comparison of Estimated Post-Mortem Intervals', pad=10)
 
     fig.subplots_adjust(left=0.18, bottom=0.15, top=0.9, right=0.92)
-    ax.set_xlim(left=0)
     ax.grid(True, alpha=0.3)
 
     # Adjust label sizes to optimize space
