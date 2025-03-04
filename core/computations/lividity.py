@@ -11,6 +11,7 @@ LIVIDITY_INTERVALS = {
 }
 """Intervals for lividity (in hours ?)"""
 
+NAME = "Lividity"
 
 # Main computation
 def compute(input_parameters) -> PostMortemIntervalResults:
@@ -28,6 +29,6 @@ def compute(input_parameters) -> PostMortemIntervalResults:
 
     _type = input_parameters.lividity
     if not _type or _type not in LIVIDITY_INTERVALS or _type == LividityType.NOT_SPECIFIED:
-        return PostMortemIntervalResults(error_message="Not Specified")
+        return PostMortemIntervalResults(NAME, error_message="Not Specified")
 
-    return PostMortemIntervalResults(LIVIDITY_INTERVALS.get(_type))
+    return PostMortemIntervalResults(NAME, LIVIDITY_INTERVALS.get(_type))

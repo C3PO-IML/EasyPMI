@@ -10,6 +10,8 @@ LIVIDITY_MOBILITY_INTERVALS = {
 }
 """Intervals for lividity mobility (in hours ?)"""
 
+NAME = "Lividity Mobility"
+
 
 # Main computation
 def compute(input_parameters) -> PostMortemIntervalResults:
@@ -27,6 +29,6 @@ def compute(input_parameters) -> PostMortemIntervalResults:
 
     _type = input_parameters.lividity_mobility
     if not _type or _type not in LIVIDITY_MOBILITY_INTERVALS or _type == LividityMobilityType.NOT_SPECIFIED:
-        return PostMortemIntervalResults(error_message="Not Specified")
+        return PostMortemIntervalResults(NAME, error_message="Not Specified")
 
-    return PostMortemIntervalResults(LIVIDITY_MOBILITY_INTERVALS.get(_type))
+    return PostMortemIntervalResults(NAME, LIVIDITY_MOBILITY_INTERVALS.get(_type))
