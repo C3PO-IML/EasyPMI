@@ -2,12 +2,13 @@ import streamlit as st
 from core import compute
 from core.constants import IdiomuscularReactionType, SupportingBase, EnvironmentType, BodyCondition, RigorType, LividityType, LividityMobilityType, LividityDisappearanceType
 from core.input_parameters import InputParameters
+from streamlitGUI import plot
 from streamlitGUI.help import build_help_section
 from streamlitGUI.pdf_generation import generate_pdf
 from streamlitGUI.tools import convert_decimal_separator
 
 
-def build_input_parameters() -> InputParameters:
+def _build_input_parameters() -> InputParameters:
     return InputParameters(
         tympanic_temperature=convert_decimal_separator(st.session_state.input_t_tympanic) if st.session_state.input_t_tympanic else None,
         rectal_temperature=convert_decimal_separator(st.session_state.input_t_rectal) if st.session_state.input_t_rectal else None,
@@ -52,8 +53,8 @@ def _init_state() -> None:
         st.session_state.lividity_mobility = LividityMobilityType.NOT_SPECIFIED
     if 'results' not in st.session_state:
         st.session_state.results = ""
-    if 'fig_henssge' not in st.session_state:
-        st.session_state.fig_henssge = None
+    if 'fig_henssge_rectal' not in st.session_state:
+        st.session_state.fig_henssge_rectal = None
     if 'fig_henssge_brain' not in st.session_state:
         st.session_state.fig_henssge_brain = None
     if 'fig_comparison' not in st.session_state:
@@ -70,13 +71,26 @@ def _reset() -> None:
         del st.session_state[key]
 
     # Reset figures
-    st.session_state.fig_henssge = None
+    st.session_state.fig_henssge_rectal = None
     st.session_state.fig_henssge_brain = None
     st.session_state.fig_comparison = None
     st.success("The application has been successfully reset.")
 
     # Force page rerun to reset all widgets
     st.rerun()
+
+
+def _on_calculate():
+    # Inputs
+    input_parameters = _build_input_parameters()
+
+    # Results
+    results = compute.run(input_parameters)
+
+    # Plots
+    st.session_state.fig_henssge_rectal = plot.plot_temperature_henssge_rectal(input_parameters, results.henssge_rectal) 
+    st.session_state.fig_henssge_brain = plot.plot_temperature_henssge_brain(input_parameters, results.henssge_brain)
+    st.session_state.fig_comparison = plot.plot_comparative_pmi_results(results)
 
 
 if __name__ == '__main__':
@@ -175,8 +189,7 @@ if __name__ == '__main__':
     # Action buttons
 
     if st.sidebar.button("Calculate"):
-        input_parameters = build_input_parameters()
-        results = compute.run(input_parameters)
+        _on_calculate()
 
     if st.sidebar.button("Reset"):
         _reset()
@@ -197,8 +210,8 @@ if __name__ == '__main__':
     st.write(st.session_state.results)
 
     # Display graphs
-    if st.session_state.fig_henssge:
-        st.pyplot(st.session_state.fig_henssge)
+    if st.session_state.fig_henssge_rectal:
+        st.pyplot(st.session_state.fig_henssge_rectal)
     if st.session_state.fig_henssge_brain:
         st.pyplot(st.session_state.fig_henssge_brain)
     if st.session_state.fig_comparison:
