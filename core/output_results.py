@@ -1,5 +1,4 @@
 import Optional
-from datetime import datetime, timedelta
 
 
 class HenssgeRectalResults:
@@ -7,10 +6,10 @@ class HenssgeRectalResults:
     # Constructors
     def __init__(
             self,
-            post_mortem_interval: timedelta = None,
-            confidence_interval: timedelta = None,
-            thermal_quotient: float = float('nan'),
-            corrective_factor: float = float('nan'),
+            post_mortem_interval: float = None,
+            confidence_interval: float = None,
+            thermal_quotient: float = None,
+            corrective_factor: float = None,
             error_message: str = None
     ):
         """        
@@ -18,8 +17,12 @@ class HenssgeRectalResults:
         
         Parameters
         ----------
-        post_mortem_interval
-        confidence_interval
+        post_mortem_interval : float
+            in hours
+            
+        confidence_interval : float
+            in hours
+            
         thermal_quotient
         corrective_factor
         error_message
@@ -35,16 +38,20 @@ class HenssgeBrainResults:
     # Constructor
     def __init__(
             self,
-            post_mortem_interval: timedelta = None,
-            confidence_interval: timedelta = None,
+            post_mortem_interval: float = None,
+            confidence_interval: float = None,
             error_message: str = None
     ):
         """
         
         Parameters
         ----------
-        post_mortem_interval
-        confidence_interval
+        post_mortem_interval : float
+            in hours
+            
+        confidence_interval : float
+            in hours
+            
         error_message
         """
         self.confidence_interval = confidence_interval
