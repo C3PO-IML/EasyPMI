@@ -38,6 +38,23 @@ class BodyCondition(Enum):
     HEAVILY = auto()
     """Very dressed (thick blanket)"""
 
+    def __str__(self):
+        match self:
+            case BodyCondition.NOT_SPECIFIED:
+                return "Not Specified"
+            case BodyCondition.NAKED:
+                return "Naked"
+            case BodyCondition.LIGHTLY:
+                return "Lightly dressed (one to two thin layers)"
+            case BodyCondition.MODERATELY:
+                return "Moderately dressed (two to three thin layers)"
+            case BodyCondition.WARMLY:
+                return "Warmly dressed (thick layers)"
+            case BodyCondition.HEAVILY:
+                return "Very dressed (thick blanket)"
+
+        return str(self.value)
+
 
 class EnvironmentType(Enum):
     """Environment in which the body was found"""
@@ -62,6 +79,25 @@ class EnvironmentType(Enum):
 
     FLOWING_WATER = auto()
     """Flowing water"""
+
+    def __str__(self):
+        match self:
+            case EnvironmentType.NOT_SPECIFIED:
+                return "Not Specified"
+            case EnvironmentType.STILL_AIR:
+                return "Still air"
+            case EnvironmentType.MOVING_AIR:
+                return "Moving air"
+            case EnvironmentType.WET_STILL_AIR:
+                return "Wet and still air"
+            case EnvironmentType.WET_MOVING_AIR:
+                return "Wet and moving air"
+            case EnvironmentType.STILL_WATER:
+                return "Still water"
+            case EnvironmentType.FLOWING_WATER:
+                return "Flowing water"
+
+        return str(self.value)
 
 
 class SupportingBase(Enum):
@@ -88,6 +124,25 @@ class SupportingBase(Enum):
     ACCELERATING = auto()
     """Concrete, stony, tiled"""
 
+    def __str__(self):
+        match self:
+            case SupportingBase.NOT_SPECIFIED:
+                return "Not Specified"
+            case SupportingBase.INDIFFERENT:
+                return "Usual floor of rooms, dry soil, lawn, asphalt"
+            case SupportingBase.HEAVY_PADDING:
+                return "Excessively thickly upholstered"
+            case SupportingBase.MATTRESS:
+                return "Mattress (bed), thick carpet"
+            case SupportingBase.WET_LEAVES:
+                return "About 2cm wettish leaves"
+            case SupportingBase.DRY_LEAVES:
+                return "About 2cm totally dry leaves"
+            case SupportingBase.ACCELERATING:
+                return "Concrete, stony, tiled"
+
+        return str(self.value)
+
 
 class IdiomuscularReactionType(Enum):
     """
@@ -109,6 +164,21 @@ class IdiomuscularReactionType(Enum):
 
     NO_REACTION = auto()
     """No reaction"""
+
+    def __str__(self):
+        match self:
+            case IdiomuscularReactionType.NOT_SPECIFIED:
+                return "Not Specified"
+            case IdiomuscularReactionType.ZSAKO:
+                return "Muscle contraction leading to flexion of the limb"
+            case IdiomuscularReactionType.STRONG_REVERSIBLE:
+                return "Visible contraction band that can be seen with the naked eye"
+            case IdiomuscularReactionType.WEAK_PERSISTENT:
+                return "Discrete, localized contraction that is not visible but palpable"
+            case IdiomuscularReactionType.NO_REACTION:
+                return "No reaction"
+
+        return str(self.value)
 
 
 class RigorType(Enum):
@@ -132,6 +202,23 @@ class RigorType(Enum):
     RESOLUTION = auto()
     """Rigor mortis has fully resolved"""
 
+    def __str__(self):
+        match self:
+            case RigorType.NOT_SPECIFIED:
+                return "Not Specified"
+            case RigorType.NOT_ESTABLISHED:
+                return "There is no evidence of rigor mortis having set in"
+            case RigorType.POSSIBLE_REESTABLISHMENT:
+                return "Early signs of rigor mortis may be present, but it is not fully established"
+            case RigorType.COMPLETE_RIGIDITY:
+                return "Rigor mortis is fully established, with the body exhibiting maximal stiffness"
+            case RigorType.PERSISTENCE:
+                return "Rigor mortis persists or may be partially resolved"
+            case RigorType.RESOLUTION:
+                return "Rigor mortis has fully resolved"
+
+        return str(self.value)
+
 
 class LividityType(Enum):
     """Lividity type"""
@@ -151,6 +238,21 @@ class LividityType(Enum):
     MAXIMUM = auto()
     """Lividity has reached its maximum intensity"""
 
+    def __str__(self):
+        match self:
+            case LividityType.NOT_SPECIFIED:
+                return "Not Specified"
+            case LividityType.ABSENT:
+                return "There is no lividity present"
+            case LividityType.DEVELOPMENT:
+                return "Lividity is beginning to develop"
+            case LividityType.CONFLUENCE:
+                return "Lividity is becoming more pronounced and merging"
+            case LividityType.MAXIMUM:
+                return "Lividity has reached its maximum intensity"
+
+        return str(self.value)
+
 
 class LividityDisappearanceType(Enum):
     """Lividity Disappearance type"""
@@ -163,6 +265,17 @@ class LividityDisappearanceType(Enum):
 
     INCOMPLETE = auto()
     """Lividity might disappears only with strong pressure (with forceps)"""
+
+    def __str__(self):
+        match self:
+            case LividityDisappearanceType.NOT_SPECIFIED:
+                return "Not Specified"
+            case LividityDisappearanceType.COMPLETE:
+                return "Lividity disappears totaly at light pressure"
+            case LividityDisappearanceType.INCOMPLETE:
+                return "Lividity might disappears only with strong pressure (with forceps)"
+
+        return str(self.value)
 
 
 class LividityMobilityType(Enum):
@@ -179,6 +292,19 @@ class LividityMobilityType(Enum):
 
     LITTLE_PALOR_ONLY = auto()
     """Lividity shows only a slight change in color (or non change) when the body is turned"""
+
+    def __str__(self):
+        match self:
+            case LividityMobilityType.NOT_SPECIFIED:
+                return "Not Specified"
+            case LividityMobilityType.COMPLETE:
+                return "Lividity can be completely displaced when the body is turned"
+            case LividityMobilityType.PARTIAL:
+                return "Lividity can be partially displaced when the body is turned"
+            case LividityMobilityType.LITTLE_PALOR_ONLY:
+                return "Lividity shows only a slight change in color (or non change) when the body is turned"
+
+        return str(self.value)
 
 
 # --- Constants
