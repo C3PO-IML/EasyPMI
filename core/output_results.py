@@ -1,4 +1,7 @@
 import Optional
+import numpy as np
+
+from core.tools import format_time
 
 
 class HenssgeRectalResults:
@@ -33,6 +36,23 @@ class HenssgeRectalResults:
         self.corrective_factor = corrective_factor
         self.error_message = error_message
 
+    def __str__(self):
+        """
+        Display results as string
+        """
+        to_str = "**Hennssge Rectal :**\n"
+        
+        if not self.error_message:
+            return to_str + self.error_message
+        
+        to_str += (f"Estimated PMI: {format_time(self.post_mortem_interval)} "
+                         f"[{format_time(self.post_mortem_interval - self.confidence_interval)} - {format_time(self.post_mortem_interval + self.confidence_interval)}]")
+        to_str += "\n"
+        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}\n"
+        to_str += f"Thermal Quotient (Q): {self.thermal_quotient:.2f}\n"
+        to_str += f"Corrective factor (Cf): {self.corrective_factor:.2f}\n"
+        return to_str
+
 
 class HenssgeBrainResults:
     # Constructor
@@ -57,6 +77,21 @@ class HenssgeBrainResults:
         self.confidence_interval = confidence_interval
         self.post_mortem_interval = post_mortem_interval
         self.error_message = error_message
+
+    def __str__(self):
+        """
+        Display results as string
+        """
+        to_str = "**Hennssge Brain :**\n"
+
+        if not self.error_message:
+            return to_str + self.error_message
+
+        to_str += (f"Estimated PMI: {format_time(self.post_mortem_interval)} "
+                   f"[{format_time(self.post_mortem_interval - self.confidence_interval)} - {format_time(self.post_mortem_interval + self.confidence_interval)}]")
+        to_str += "\n"
+        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}\n"
+
 
 class BaccinoResults:
     # Constructor
@@ -166,3 +201,18 @@ class OutputResults:
         self.lividity_mobility = Optional[PostMortemIntervalResults] = None
         self.rigor = Optional[PostMortemIntervalResults] = None
 
+
+    def __str__(self):
+        """
+        Display results as string
+        """
+        return "\n".join([
+            self.henssge_rectal,
+            self.henssge_brain,
+            self.baccino,
+            self.idiomuscular_reaction,
+            self.lividity,
+            self.lividity_disappearance,
+            self.lividity_mobility,
+            self.rigor
+        ])
