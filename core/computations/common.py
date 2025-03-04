@@ -55,7 +55,7 @@ def determine_corrective_factor(
     corrective_factor = user_corrective_factor
 
     # If no user input, determine corrective from body_condition and environment
-    if np.isnan(corrective_factor):
+    if not corrective_factor:
         # Handle missing or invalid body_condition
         if body_condition not in CORRECTIVE_FACTOR:
             body_condition = BodyCondition.NOT_SPECIFIED
