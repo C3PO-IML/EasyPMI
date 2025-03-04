@@ -1,4 +1,4 @@
-import Optional
+from typing import Optional
 import numpy as np
 
 from core.tools import format_time
