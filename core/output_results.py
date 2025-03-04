@@ -58,6 +58,40 @@ class HenssgeBrainResults:
         self.post_mortem_interval = post_mortem_interval
         self.error_message = error_message
 
+class BaccinoResults:
+    # Constructor
+    def __init__(
+            self,
+            post_mortem_interval_interval: float = None,
+            post_mortem_interval_global: float = None,
+            confidence_interval_interval: float = None,
+            confidence_interval_global: float = None,
+            error_message: str = None
+    ):
+        """
+        
+        Parameters
+        ----------
+        post_mortem_interval_interval : float
+            in hours
+            
+        post_mortem_interval_global : float
+            in hours
+            
+        confidence_interval_interval : float
+            in hours
+            
+        confidence_interval_global : float
+            in hours
+            
+        error_message
+        """
+        self.post_mortem_interval_interval = post_mortem_interval_interval
+        self.post_mortem_interval_global = post_mortem_interval_global
+        self.confidence_interval_interval = confidence_interval_interval
+        self.confidence_interval_global = confidence_interval_global
+        self.error_message = error_message
+
 
 class OutputResults:
 
