@@ -92,6 +92,22 @@ class BaccinoResults:
         self.confidence_interval_global = confidence_interval_global
         self.error_message = error_message
 
+    def __str__(self):
+        """
+        Display results as string
+        """
+        to_str = "**Hennssge Rectal :**\n"
+
+        if not self.error_message:
+            return to_str + self.error_message
+
+        to_str += (f"Estimated PMI (Interval Method): {format_time(self.post_mortem_interval_interval)} "
+                   f"[{format_time(self.post_mortem_interval_interval - self.confidence_interval_interval)} - {format_time(self.post_mortem_interval_interval + self.confidence_interval_interval)}]")
+        to_str += "\n"
+        to_str += (f"Estimated PMI (Global Method): {format_time(self.post_mortem_interval_global)} "
+                   f"[{format_time(self.post_mortem_interval_global - self.confidence_interval_global)} - {format_time(self.post_mortem_interval_global + self.confidence_interval_global)}]")
+
+
 class PostMortemIntervalResults:
     # Constructor
     def __init__(
@@ -119,6 +135,23 @@ class PostMortemIntervalResults:
         self.max = max
         self.error_message = error_message
 
+    def __str__(self):
+        """
+        Display results as string
+        """
+        to_str = f"**{self.name} :**\n"
+
+        if self.min and np.isclose(self.min, 0.0) and self.max and self.max != float('inf'):
+            return to_str + f"Estimated PMI [{format_time(self.min)} - {format_time(self.max)}]"
+
+        if not self.min or np.isclose(self.min, 0.0):
+            return to_str + f"Estimated PMI < {format_time(self.max)}"
+
+        if not self.max or self.max == float('inf'):
+            return to_str + f"Estimated PMI > {format_time(self.min)}"
+
+        return to_str + "Not specified"
+
 
 class OutputResults:
 
@@ -126,3 +159,10 @@ class OutputResults:
     def __init__(self):
         self.henssge_rectal: Optional[HenssgeRectalResults] = None
         self.henssge_brain: Optional[HenssgeBrainResults] = None
+        self.baccino = Optional[BaccinoResults] = None
+        self.idiomuscular_reaction = Optional[PostMortemIntervalResults] = None
+        self.lividity = Optional[PostMortemIntervalResults] = None
+        self.lividity_disappearance = Optional[PostMortemIntervalResults] = None
+        self.lividity_mobility = Optional[PostMortemIntervalResults] = None
+        self.rigor = Optional[PostMortemIntervalResults] = None
+
