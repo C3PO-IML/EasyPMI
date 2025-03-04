@@ -26,7 +26,7 @@ def compute(input_parameters) -> PostMortemIntervalResults:
 
     """
 
-    _type = input_parameters.idiomuscular_type
+    _type = input_parameters.idiomuscular_reaction
     if not _type or _type not in IDIOMUSCULAR_REACTION_INTERVALS or _type == IdiomuscularReactionType.NOT_SPECIFIED:
         return PostMortemIntervalResults(error_message="Not Specified")
 
