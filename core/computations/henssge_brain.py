@@ -142,4 +142,7 @@ def _equation(post_mortem_interval: float, tympanic_temperature: float, ambient_
         Post-mortem interval
     """
     thermal_quotient = compute_thermal_quotient(tympanic_temperature, ambient_temperature)
-    return thermal_quotient - (1.135 * np.exp(-0.127 * post_mortem_interval) - 0.135 * np.exp(-1.07 * post_mortem_interval))
+    return thermal_quotient - temperature_decrease(post_mortem_interval)
+
+def temperature_decrease(post_mortem_interval: float) -> float:
+    return 1.135 * np.exp(-0.127 * post_mortem_interval) - 0.135 * np.exp(-1.07 * post_mortem_interval)

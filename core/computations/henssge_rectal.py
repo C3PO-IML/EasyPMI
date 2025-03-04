@@ -138,7 +138,6 @@ def _adjust_confidence_interval(thermal_quotient: float, corrective_factor: floa
         return 7.0 if corrective_factor_not_1 else 4.5
     return 7.0
 
-
 def _equation(post_mortem_interval: float, rectal_temperature: float, ambient_temperature: float, body_mass: float) -> float:
     """
     Calculates the post-mortem interval according to the Henssge equation from the rectal temperature.
@@ -159,10 +158,14 @@ def _equation(post_mortem_interval: float, rectal_temperature: float, ambient_te
     float
         Post-mortem interval
     """
+    thermal_quotient = compute_thermal_quotient(rectal_temperature, ambient_temperature)    
+    return thermal_quotient - temperature_decrease(post_mortem_interval, ambient_temperature, body_mass)
+
+
+def temperature_decrease(post_mortem_interval: float, ambient_temperature: float, body_mass: float) -> float:
     k = (1.2815 / body_mass ** 0.625) - 0.0284
-    thermal_quotient = compute_thermal_quotient(rectal_temperature, ambient_temperature)
 
     if ambient_temperature <= 23:
-        return thermal_quotient - (1.25 * np.exp(-k * post_mortem_interval) - 0.25 * np.exp(-5 * k * post_mortem_interval))
+        return 1.25 * np.exp(-k * post_mortem_interval) - 0.25 * np.exp(-5 * k * post_mortem_interval)
     else:
-        return thermal_quotient - (1.11 * np.exp(-k * post_mortem_interval) - 0.11 * np.exp(-10 * k * post_mortem_interval))
+        return 1.11 * np.exp(-k * post_mortem_interval) - 0.11 * np.exp(-10 * k * post_mortem_interval)
