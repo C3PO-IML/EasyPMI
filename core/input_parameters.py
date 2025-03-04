@@ -14,9 +14,9 @@ class InputParameters:
             body_condition: BodyCondition = None,
             environment: EnvironmentType = None,
             supporting_base: SupportingBase = None,
-            idiomuscular_type: IdiomuscularReactionType = None,
+            idiomuscular_reaction: IdiomuscularReactionType = None,
             rigor_type: RigorType = None,
-            lividity_type: LividityType = None,
+            lividity: LividityType = None,
             lividity_disappearance: LividityDisappearanceType = None,
             lividity_mobility: LividityMobilityType = None,
             user_corrective_factor: float = None
@@ -41,9 +41,9 @@ class InputParameters:
         body_condition : BodyCondition        
         environment : EnvironmentType
         supporting_base : SupportingBase
-        idiomuscular_type : IdiomuscularReactionType
+        idiomuscular_reaction : IdiomuscularReactionType
         rigor_type : RigorType
-        lividity_type : LividityType
+        lividity : LividityType
         lividity_disappearance : LividityDisappearanceType
         lividity_mobility : LividityMobilityType
         user_corrective_factor : float
@@ -55,9 +55,9 @@ class InputParameters:
         self.body_condition = body_condition
         self.environment = environment
         self.supporting_base = supporting_base
-        self.idiomuscular_type = idiomuscular_type
+        self.idiomuscular_reaction = idiomuscular_reaction
         self.rigor_type = rigor_type
-        self.lividity_type = lividity_type
+        self.lividity = lividity
         self.lividity_disappearance = lividity_disappearance
         self.lividity_mobility = lividity_mobility
         self.user_corrective_factor = user_corrective_factor
@@ -76,8 +76,8 @@ class InputParameters:
             members.append(f"environment = {self.environment}")
         if self.supporting_base:
             members.append(f"supporting_base = {self.supporting_base}")
-        if self.idiomuscular_type:
-            members.append(f"idiomuscular_type = {self.idiomuscular_type}")
+        if self.idiomuscular_reaction:
+            members.append(f"idiomuscular_type = {self.idiomuscular_reaction}")
         if self.rigor_type:
             members.append(f"rigor_type = {self.rigor_type}")
         if self.lividity_type:
