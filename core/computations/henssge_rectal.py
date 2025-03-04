@@ -61,7 +61,7 @@ def compute(input_parameters) -> HenssgeRectalResults:
     except ValueError as e:
         return HenssgeRectalResults(error_message=str(e))
 
-    return HenssgeRectalResults(pmi, confidence_interval, thermal_quotient)
+    return HenssgeRectalResults(pmi, confidence_interval, thermal_quotient, corrective_factor)
 
 
 # Input verifications
