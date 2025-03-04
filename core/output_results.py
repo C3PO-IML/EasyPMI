@@ -41,12 +41,12 @@ class HenssgeRectalResults:
         Display results as string
         """
         to_str = "**Hennssge Rectal :**\n"
-        
+
         if not self.error_message:
             return to_str + self.error_message
-        
+
         to_str += (f"Estimated PMI: {format_time(self.post_mortem_interval)} "
-                         f"[{format_time(self.post_mortem_interval - self.confidence_interval)} - {format_time(self.post_mortem_interval + self.confidence_interval)}]")
+                   f"[{format_time(self.post_mortem_interval - self.confidence_interval)} - {format_time(self.post_mortem_interval + self.confidence_interval)}]")
         to_str += "\n"
         to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}\n"
         to_str += f"Thermal Quotient (Q): {self.thermal_quotient:.2f}\n"
@@ -194,25 +194,24 @@ class OutputResults:
     def __init__(self):
         self.henssge_rectal: Optional[HenssgeRectalResults] = None
         self.henssge_brain: Optional[HenssgeBrainResults] = None
-        self.baccino = Optional[BaccinoResults] = None
-        self.idiomuscular_reaction = Optional[PostMortemIntervalResults] = None
-        self.lividity = Optional[PostMortemIntervalResults] = None
-        self.lividity_disappearance = Optional[PostMortemIntervalResults] = None
-        self.lividity_mobility = Optional[PostMortemIntervalResults] = None
-        self.rigor = Optional[PostMortemIntervalResults] = None
-
+        self.baccino: Optional[BaccinoResults] = None
+        self.idiomuscular_reaction: Optional[PostMortemIntervalResults] = None
+        self.lividity: Optional[PostMortemIntervalResults] = None
+        self.lividity_disappearance: Optional[PostMortemIntervalResults] = None
+        self.lividity_mobility: Optional[PostMortemIntervalResults] = None
+        self.rigor: Optional[PostMortemIntervalResults] = None
 
     def __str__(self):
         """
         Display results as string
         """
         return "\n".join([
-            self.henssge_rectal,
-            self.henssge_brain,
-            self.baccino,
-            self.idiomuscular_reaction,
-            self.lividity,
-            self.lividity_disappearance,
-            self.lividity_mobility,
-            self.rigor
+            str(self.henssge_rectal),
+            str(self.henssge_brain),
+            str(self.baccino),
+            str(self.idiomuscular_reaction),
+            str(self.lividity),
+            str(self.lividity_disappearance),
+            str(self.lividity_mobility),
+            str(self.rigor)
         ])
