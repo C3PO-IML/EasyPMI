@@ -86,6 +86,7 @@ def _on_calculate():
 
     # Results
     results = compute.run(input_parameters)
+    st.session_state.results = str(results)
 
     # Plots
     st.session_state.fig_henssge_rectal = plot.plot_temperature_henssge_rectal(input_parameters, results.henssge_rectal) 

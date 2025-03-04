@@ -46,15 +46,15 @@ class HenssgeRectalResults:
         """
         Display results as string
         """
-        to_str = "**Hennssge Rectal :**\n"
+        to_str = "**Hennssge Rectal :**  \n"
 
-        if not self.error_message:
+        if self.error_message:
             return to_str + self.error_message
 
-        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]\n"
-        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}\n"
-        to_str += f"Thermal Quotient (Q): {self.thermal_quotient:.2f}\n"
-        to_str += f"Corrective factor (Cf): {self.corrective_factor:.2f}\n"
+        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]  \n"
+        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}  \n"
+        to_str += f"Thermal Quotient (Q): {self.thermal_quotient:.2f}  \n"
+        to_str += f"Corrective factor (Cf): {self.corrective_factor:.2f}"
         return to_str
 
 
@@ -92,13 +92,14 @@ class HenssgeBrainResults:
         """
         Display results as string
         """
-        to_str = "**Hennssge Brain :**\n"
+        to_str = "**Hennssge Brain :**  \n"
 
-        if not self.error_message:
+        if self.error_message:
             return to_str + self.error_message
 
-        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]\n"
-        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}\n"
+        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]  \n"
+        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}"
+        return to_str
 
 
 class BaccinoResults:
@@ -139,16 +140,17 @@ class BaccinoResults:
         """
         Display results as string
         """
-        to_str = "**Hennssge Rectal :**\n"
+        to_str = "**Hennssge Rectal :**  \n"
 
-        if not self.error_message:
+        if self.error_message:
             return to_str + self.error_message
 
         to_str += (f"Estimated PMI (Interval Method): {format_time(self.post_mortem_interval_interval)} "
                    f"[{format_time(self.post_mortem_interval_interval - self.confidence_interval_interval)} - {format_time(self.post_mortem_interval_interval + self.confidence_interval_interval)}]")
-        to_str += "\n"
+        to_str += "  \n"
         to_str += (f"Estimated PMI (Global Method): {format_time(self.post_mortem_interval_global)} "
                    f"[{format_time(self.post_mortem_interval_global - self.confidence_interval_global)} - {format_time(self.post_mortem_interval_global + self.confidence_interval_global)}]")
+        return to_str
 
 
 class PostMortemIntervalResults:
@@ -180,6 +182,9 @@ class PostMortemIntervalResults:
         """
         to_str = f"**{self.name} :**\n"
 
+        if self.error_message:
+            return to_str + self.error_message
+
         if self.min and np.isclose(self.min, 0.0) and self.max and self.max != float('inf'):
             return to_str + f"Estimated PMI [{format_time(self.min)} - {format_time(self.max)}]"
 
@@ -209,7 +214,7 @@ class OutputResults:
         """
         Display results as string
         """
-        return "\n".join([
+        test = "\n\n".join([
             str(self.henssge_rectal),
             str(self.henssge_brain),
             str(self.baccino),
@@ -219,3 +224,5 @@ class OutputResults:
             str(self.lividity_mobility),
             str(self.rigor)
         ])
+        
+        return test
