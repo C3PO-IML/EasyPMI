@@ -1,0 +1,9 @@
+# Environment files
+.venv/
+
+# IDE files
+/.idea/
+Folder.DotSettings.user
+
+# Cache
+**/__pycache__/
