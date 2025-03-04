@@ -211,9 +211,9 @@ if __name__ == '__main__':
     st.write(st.session_state.results)
 
     # Display graphs
+    if st.session_state.fig_comparison:
+        st.pyplot(st.session_state.fig_comparison)
     if st.session_state.fig_henssge_rectal:
         st.pyplot(st.session_state.fig_henssge_rectal)
     if st.session_state.fig_henssge_brain:
         st.pyplot(st.session_state.fig_henssge_brain)
-    if st.session_state.fig_comparison:
-        st.pyplot(st.session_state.fig_comparison)
