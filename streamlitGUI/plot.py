@@ -1,3 +1,5 @@
+import math
+
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
@@ -213,8 +215,11 @@ def plot_comparative_pmi_results(result: OutputResults) -> Figure:
         ticks.extend([t for t in log_ticks if t <= max_value])
 
     # Determine max value for the x-axis
-    default_max = 10  # defaut value for the x-axis 
-    max_value = max(max(values) if values else default_max, default_max)
+    default_max = 10  # defaut value for the x-axis
+    filtered_max_values = [v for v in values if not (math.isinf(v) or math.isnan(v))]
+    max_value = max(max(filtered_max_values) if filtered_max_values else default_max, default_max)
+
+    ax.set_xlim(left=0.0, right=max_value)
 
     # Apply a custom transformation to the x-axis
     ax.set_xscale('function', functions=(_hybrid_scale, _inverse_hybrid_scale))
