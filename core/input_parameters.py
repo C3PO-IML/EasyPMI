@@ -80,8 +80,8 @@ class InputParameters:
             members.append(f"idiomuscular_type = {self.idiomuscular_reaction}")
         if self.rigor_type:
             members.append(f"rigor_type = {self.rigor_type}")
-        if self.lividity_type:
-            members.append(f"lividity_type = {self.lividity_type}")
+        if self.lividity:
+            members.append(f"lividity_type = {self.lividity}")
         if self.lividity_disappearance:
             members.append(f"lividity_disappearance = {self.lividity_disappearance}")
         if self.lividity_mobility:
