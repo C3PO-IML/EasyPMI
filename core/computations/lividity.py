@@ -26,7 +26,7 @@ def compute(input_parameters) -> PostMortemIntervalResults:
 
     """
 
-    _type = input_parameters.lividity_type
+    _type = input_parameters.lividity
     if not _type or _type not in LIVIDITY_INTERVALS or _type == LividityType.NOT_SPECIFIED:
         return PostMortemIntervalResults(error_message="Not Specified")
 
