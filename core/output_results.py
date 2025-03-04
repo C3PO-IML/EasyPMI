@@ -156,8 +156,7 @@ class PostMortemIntervalResults:
     def __init__(
             self,
             name: str,
-            min: float = None,
-            max: float = None,
+            min_max: tuple = (None, None),
             error_message: str = None
     ):
         """
@@ -165,17 +164,14 @@ class PostMortemIntervalResults:
         Parameters
         ----------
         name
-        min : float
-            in hours
-            
-        max : float
-            in hours
+        min_max : tuple
+            min and max (in hours)
             
         error_message
         """
         self.name = name
-        self.min = min
-        self.max = max
+        self.min = min_max[0]
+        self.max = min_max[1]
         self.error_message = error_message
 
     def __str__(self):
