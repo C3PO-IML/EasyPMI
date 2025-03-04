@@ -92,6 +92,33 @@ class BaccinoResults:
         self.confidence_interval_global = confidence_interval_global
         self.error_message = error_message
 
+class PostMortemIntervalResults:
+    # Constructor
+    def __init__(
+            self,
+            name: str,
+            min: float = None,
+            max: float = None,
+            error_message: str = None
+    ):
+        """
+        
+        Parameters
+        ----------
+        name
+        min : float
+            in hours
+            
+        max : float
+            in hours
+            
+        error_message
+        """
+        self.name = name
+        self.min = min
+        self.max = max
+        self.error_message = error_message
+
 
 class OutputResults:
 
