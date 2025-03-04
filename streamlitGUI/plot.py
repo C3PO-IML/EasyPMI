@@ -1,12 +1,16 @@
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
-import streamlit as st
+from core.computations import henssge_rectal, henssge_brain
+from core.constants import STANDARD_BODY_TEMPERATURE
+from core.input_parameters import InputParameters
+from core.output_results import HenssgeRectalResults, HenssgeBrainResults, OutputResults, PostMortemIntervalResults
 from core.tools import format_time
 
 
-def plot_temperature_henssge_rectal(t_rectal: float, t_ambient: float, M: float, Cf: float, t_max: float, t_min: float, corrected_pmi: float) -> Figure:
+def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: HenssgeRectalResults) -> Figure:
     """
     Plots the post-mortem thermal decay curve according to the Henssge equation.
 
@@ -17,20 +21,10 @@ def plot_temperature_henssge_rectal(t_rectal: float, t_ambient: float, M: float,
 
     Parameters
     ----------
-    t_rectal : float
-        Measured rectal temperature (in °C).
-    t_ambient : float
-        Ambient temperature (in °C).
-    M : float
-        Body mass (in kg).
-    Cf : float
-        Raw correction factor (before mass adjustment).
-    t_max : float
-        Upper bound of the confidence interval (in hours).
-    t_min : float
-        Lower bound of the confidence interval (in hours).
-    corrected_pmi : float
-        Estimated corrected post-mortem interval (in hours).
+    input_parameters : InputParameters
+        input_parameters from user
+    result : HenssgeRectalResults
+        result from Henssge rectal computation
 
     Returns
     -------
@@ -40,34 +34,19 @@ def plot_temperature_henssge_rectal(t_rectal: float, t_ambient: float, M: float,
     fig = Figure(figsize=(6, 4), dpi=100)
     ax = fig.add_subplot(111)
 
+    # Build temperatures through time
     max_time = 50
     time = np.linspace(0, max_time, 100)
-
-    # Determine the combined corrective factor
-    Cf_corrige = determine_corrective_factor(
-        st.session_state.body_condition,
-        st.session_state.environment,
-        st.session_state.supporting_base,
-        st.session_state.input_Cf,
-        M
-    )
-
-    M_corrige = M * Cf_corrige
-    temperatures = []
-
-    for t in time:
-        if t_ambient <= 23:
-            temperatures.append(
-                t_ambient + (37.2 - t_ambient) * (1.25 * np.exp(-(1.2815 / M_corrige ** 0.625 - 0.0284) * t) - 0.25 * np.exp(-5 * (1.2815 / M_corrige ** 0.625 - 0.0284) * t)))
-        else:
-            temperatures.append(
-                t_ambient + (37.2 - t_ambient) * (1.11 * np.exp(-(1.2815 / M_corrige ** 0.625 - 0.0284) * t) - 0.11 * np.exp(-10 * (1.2815 / M_corrige ** 0.625 - 0.0284) * t)))
+    temperatures = [input_parameters.ambient_temperature 
+                    + (STANDARD_BODY_TEMPERATURE - input_parameters.ambient_temperature) 
+                    * henssge_rectal.temperature_decrease(t, input_parameters.ambient_temperature, input_parameters.body_mass * result.corrective_factor) for
+                    t in time]
 
     ax.plot(time, temperatures, label="Thermal evolution")
-    ax.axhline(y=t_rectal, color='r', linestyle='--', label=f"Current temperature: {t_rectal} °C")
-    ax.scatter(corrected_pmi, t_rectal, color='b', label=f"Estimated time: {format_time(corrected_pmi)}")
+    ax.axhline(y=input_parameters.rectal_temperature, color='r', linestyle='--', label=f"Current temperature: {input_parameters.rectal_temperature} °C")
+    ax.scatter(result.post_mortem_interval, input_parameters.rectal_temperature, color='b', label=f"Estimated time: {format_time(result.post_mortem_interval)}")
 
-    ax.axvspan(t_min, t_max, color='green', alpha=0.3, label=f"CI: {format_time(t_min)} - {format_time(t_max)}")
+    ax.axvspan(result.pmi_min(), result.pmi_max(), color='green', alpha=0.3, label=f"CI: {format_time(result.pmi_min())} - {format_time(result.pmi_max())}")
 
     ax.set_xlabel("Time (hours)")
     ax.set_ylabel("Rectal temperature (°C)")
@@ -79,7 +58,7 @@ def plot_temperature_henssge_rectal(t_rectal: float, t_ambient: float, M: float,
     return fig
 
 
-def plot_temperature_henssge_brain(t_tympanic: float, t_ambient: float, t_max: float, t_min: float, corrected_pmi: float) -> Figure:
+def plot_temperature_henssge_brain(input_parameters: InputParameters, result: HenssgeBrainResults) -> Figure:
     """
     Plots the post-mortem brain thermal decay curve according to the Henssge equation.
 
@@ -91,16 +70,10 @@ def plot_temperature_henssge_brain(t_tympanic: float, t_ambient: float, t_max: f
 
     Parameters
     ----------
-    t_tympanic : float
-        Measured tympanic temperature (in °C).
-    t_ambient : float
-        Ambient temperature (in °C).
-    t_max : float
-        Upper bound of the confidence interval (in hours).
-    t_min : float
-        Lower bound of the confidence interval (in hours).
-    corrected_pmi : float
-        Estimated corrected post-mortem interval (in hours).
+    input_parameters : InputParameters
+        input_parameters from user
+    result : HenssgeBrainResults
+        result from Henssge brain computation
 
     Returns
     -------
@@ -110,15 +83,19 @@ def plot_temperature_henssge_brain(t_tympanic: float, t_ambient: float, t_max: f
     fig = Figure(figsize=(6, 4), dpi=100)
     ax = fig.add_subplot(111)
 
+    # Build temperatures through time
     max_time = 50
     time = np.linspace(0, max_time, 100)
-    temperatures = [t_ambient + (37.2 - t_ambient) * (1.135 * np.exp(-0.127 * t) - 0.135 * np.exp(-1.07 * t)) for t in time]
+    temperatures = [input_parameters.ambient_temperature
+                    + (STANDARD_BODY_TEMPERATURE - input_parameters.ambient_temperature)
+                    * henssge_brain.temperature_decrease(t) 
+                    for t in time]
 
     ax.plot(time, temperatures, label="Thermal evolution")
-    ax.axhline(y=t_tympanic, color='r', linestyle='--', label=f"Current temperature : {t_tympanic} °C")
-    ax.scatter(corrected_pmi, t_tympanic, color='b', label=f"Estimated time : {format_time(corrected_pmi)}")
+    ax.axhline(y=input_parameters.tympanic_temperature, color='r', linestyle='--', label=f"Current temperature : {input_parameters.tympanic_temperature} °C")
+    ax.scatter(result.post_mortem_interval, input_parameters.tympanic_temperature, color='b', label=f"Estimated time : {format_time(result.post_mortem_interval)}")
 
-    ax.axvspan(t_min, t_max, color='green', alpha=0.3, label=f"CI : {format_time(t_min)} - {format_time(t_max)}")
+    ax.axvspan(result.pmi_min(), result.pmi_max(), color='green', alpha=0.3, label=f"CI : {format_time(result.pmi_min())} - {format_time(result.pmi_max())}")
 
     ax.set_xlabel("Time (hours)")
     ax.set_ylabel("Tympanic temperature (°C)")
@@ -129,8 +106,8 @@ def plot_temperature_henssge_brain(t_tympanic: float, t_ambient: float, t_max: f
 
     return fig
 
-
-def hybrid_scale(x, threshold=20, compression_factor=8):
+# Plot Tools
+def _hybrid_scale(x, threshold=20, compression_factor=8):
     """
     Custom hybrid scale transformation.
     Values below the threshold are linear, values above are compressed.
@@ -138,17 +115,66 @@ def hybrid_scale(x, threshold=20, compression_factor=8):
     return np.where(x <= threshold, x, threshold + (x - threshold) / compression_factor)
 
 
-def inverse_hybrid_scale(x, threshold=20, compression_factor=8):
+def _inverse_hybrid_scale(x, threshold=20, compression_factor=8):
     """
     Inverse of the hybrid scale transformation.
     """
     return np.where(x <= threshold, x, threshold + (x - threshold) * compression_factor)
 
+def _pick_color(index: int) -> str:
+    return list(mcolors.TABLEAU_COLORS.values())[index]
+    
 
-def plot_comparative_pmi_results(corrected_pmi: float, t_min: float, t_max: float, corrected_pmi_brain: float, t_min_brain: float, t_max_brain: float, PMI_interval: float,
-                                 PMI_global: float, CI_interval: float, CI_global: float, pmi_idiomuscular_reaction_min: float, pmi_idiomuscular_reaction_max: float,
-                                 pmi_rigor_min: float, pmi_rigor_max: float, pmi_lividity_min: float, pmi_lividity_max: float, pmi_lividity_disappearance_min: float,
-                                 pmi_lividity_disappearance_max: float, pmi_lividity_mobility_min: float, pmi_lividity_mobility_max: float) -> Figure:
+# Mustaches boxes
+def _add_vertical_bars(ax: plt.Axes, x1: float, x2: float, y: float, color: str) -> float:
+    bar_height = 0.05
+    ax.plot([x1, x1], [y - bar_height, y + bar_height], color=color, lw=2)
+    ax.plot([x2, x2], [y - bar_height, y + bar_height], color=color, lw=2)
+    return bar_height
+
+
+def _add_interval_values(ax: plt.Axes, x1: float, x2: float, y: float, bar_height: float, color: str) -> None:
+    ax.text(x1, y - bar_height - 0.03, f"{format_time(x1)}", ha='center', va='top', fontsize=10, color=color)
+    ax.text(x2, y - bar_height - 0.03, f"{format_time(x2)}", ha='center', va='top', fontsize=10, color=color)
+
+
+def _add_mustache_box(ax: plt.Axes, vertical_index: int, left: float, right: float, center: float = None) -> None:
+    color = _pick_color(vertical_index)
+    if center:
+        ax.text(center, vertical_index, f"{format_time(center)}", ha='center', va='bottom', fontsize=8)
+    else:
+        center = (right + left) / 2.0
+
+    ax.errorbar([center], [vertical_index], xerr=[[center - left], [right - center]], fmt='o', color=color)
+    bar_height = _add_vertical_bars(ax, left, right, vertical_index, color)
+    _add_interval_values(ax, left, right, vertical_index, bar_height, color)
+
+
+# Zone boxes
+def _add_zone_box(ax: plt.Axes, vertical_index: int, position: float, side: str) -> None:
+    color = _pick_color(vertical_index)
+    ax.axvspan(vertical_index, position, color=color, alpha=0.5)
+    ax.axvline(x=position, color=color, linestyle='--', lw=2)
+    text = ""
+    if side == 'right':
+        text = f"PMI < {format_time(position)}"
+    elif side == 'left':
+        text = f"PMI > {format_time(position)}"
+
+    ax.text(position, vertical_index, text, ha=side, va='bottom', fontsize=8, color=color)
+
+
+# PostMortemInterval plots
+def _plot_post_mortem_interval_result(ax: plt.Axes, vertical_index: int, result: PostMortemIntervalResults) -> None:
+    if result.min == 0.0:
+        _add_zone_box(ax, vertical_index, position=result.max, side='right')
+    elif result.max == float('inf'):
+        _add_zone_box(ax, vertical_index, position=result.min, side='left')
+    if result.min != 0.0 and result.max != float('inf'):
+        _add_mustache_box(ax, vertical_index, left=result.min, right=result.max)
+
+
+def plot_comparative_pmi_results(result: OutputResults) -> Figure:
     """
     Plots a comparative graph of different post-mortem interval (PMI) estimations.
 
@@ -157,46 +183,8 @@ def plot_comparative_pmi_results(corrected_pmi: float, t_min: float, t_max: floa
 
     Parameters
     ----------
-    corrected_pmi : float or None
-        Corrected PMI estimation according to Henssge (in hours)
-    t_min : float or None
-        Lower bound of the confidence interval for the Henssge estimation
-    t_max : float or None
-        Upper bound of the confidence interval for the Henssge estimation
-    corrected_pmi_brain : float or None
-        Corrected PMI estimation based on brain temperature
-    t_min_brain : float or None
-        Lower bound of the confidence interval for the brain estimation
-    t_max_brain : float or None
-        Upper bound of the confidence interval for the brain estimation
-    PMI_interval : float or None
-        PMI estimation according to the Baccino method (interval)
-    PMI_global : float or None
-        PMI estimation according to the Baccino method (global)
-    CI_interval : float or None
-        Confidence interval for the Baccino estimation (interval)
-    CI_global : float or None
-        Confidence interval for the Baccino estimation (global)
-    pmi_idiomuscular_reaction_min : float or None
-        Lower bound of the estimation based on idiomuscular contraction
-    pmi_idiomuscular_reaction_max : float or None
-        Upper bound of the estimation based on idiomuscular contraction
-    pmi_rigor_min : float or None
-        Lower bound of the estimation based on cadaveric rigidity
-    pmi_rigor_max : float or None
-        Upper bound of the estimation based on cadaveric rigidity
-    pmi_lividity_min : float or None
-        Lower bound of the estimation based on cadaveric lividity
-    pmi_lividity_max : float or None
-        Upper bound of the estimation based on cadaveric lividity
-    pmi_lividity_disappearance_min : float or None
-        Lower bound for the complete disappearance of lividity
-    pmi_lividity_disappearance_max : float or None
-        Upper bound for the complete disappearance of lividity
-    pmi_lividity_mobility_min : float or None
-        Lower bound of the estimation based on lividity mobility
-    pmi_lividity_mobility_max : float or None
-        Upper bound of the estimation based on lividity mobility
+    result : OutputResults
+        result from computation
 
     Returns
     -------
@@ -206,24 +194,16 @@ def plot_comparative_pmi_results(corrected_pmi: float, t_min: float, t_max: floa
     fig = Figure(figsize=(18, 5), dpi=120)
     ax = fig.add_subplot(111)
 
-    def add_vertical_bars(ax: plt.Axes, x1: float, x2: float, y: float, color: str) -> float:
-        bar_height = 0.05
-        ax.plot([x1, x1], [y - bar_height, y + bar_height], color=color, lw=2)
-        ax.plot([x2, x2], [y - bar_height, y + bar_height], color=color, lw=2)
-        return bar_height
-
-    def add_interval_values(ax: plt.Axes, x1: float, x2: float, y: float, bar_height: float, color: str) -> None:
-        ax.text(x1, y - bar_height - 0.03, f"{format_time(x1)}", ha='center', va='top', fontsize=10, color=color)
-        ax.text(x2, y - bar_height - 0.03, f"{format_time(x2)}", ha='center', va='top', fontsize=10, color=color)
-
+    # --- Gradutions
     # Create Custom Graduations
     ticks = list(range(0, 21, 4))
-    values = [v for v in [t_max, t_max_brain, PMI_interval, PMI_global, pmi_idiomuscular_reaction_max, pmi_rigor_max, pmi_lividity_max, pmi_lividity_disappearance_max,
-                          pmi_lividity_mobility_max] if v is not None]
-    if CI_interval is not None:
-        values.append(PMI_interval + CI_interval)
-    if CI_global is not None:
-        values.append(PMI_global + CI_global)
+    values = [v for v in [result.henssge_rectal.pmi_max(), result.henssge_brain.pmi_max(), result.baccino.post_mortem_interval_interval,
+                          result.baccino.post_mortem_interval_global, result.idiomuscular_reaction.max, result.rigor.max, result.lividity.max,
+                          result.lividity_disappearance.max, result.lividity_mobility.max] if v is not None]
+    if result.baccino.confidence_interval_interval is not None:
+        values.append(result.baccino.post_mortem_interval_interval + result.baccino.confidence_interval_interval)
+    if result.baccino.confidence_interval_global is not None:
+        values.append(result.baccino.post_mortem_interval_global + result.baccino.confidence_interval_global)
     max_value = max(values) if values else 0
 
     if max_value <= 20:
@@ -237,120 +217,87 @@ def plot_comparative_pmi_results(corrected_pmi: float, t_min: float, t_max: floa
     max_value = max(max(values) if values else default_max, default_max)
 
     # Apply a custom transformation to the x-axis
-    ax.set_xscale('function', functions=(hybrid_scale, inverse_hybrid_scale))
+    ax.set_xscale('function', functions=(_hybrid_scale, _inverse_hybrid_scale))
 
-    if corrected_pmi is not None and t_min is not None and t_max is not None:
-        ax.errorbar([corrected_pmi], [0], xerr=[[corrected_pmi - t_min], [t_max - corrected_pmi]], fmt='o', color='blue')
-        ax.text(corrected_pmi, 0, f"{format_time(corrected_pmi)}", ha='center', va='bottom', fontsize=8)
-        bar_height = add_vertical_bars(ax, t_min, t_max, 0, 'blue')
-        add_interval_values(ax, t_min, t_max, 0, bar_height, 'blue')
+    # --- Plots
+    vertical_index = 0
+    vertical_labels = []    
+    
+    # Henssge rectal
+    if result.henssge_rectal.post_mortem_interval is not None and result.henssge_rectal.confidence_interval is not None:
+        _add_mustache_box(ax, vertical_index, center=result.henssge_rectal.post_mortem_interval, left=result.henssge_rectal.pmi_min(), right=result.henssge_rectal.pmi_max())
+        vertical_labels.append('Henssge (Rectal)')
+        vertical_index += 1
 
-    if corrected_pmi_brain is not None and t_min_brain is not None and t_max_brain is not None:
-        ax.errorbar([corrected_pmi_brain], [1], xerr=[[corrected_pmi_brain - t_min_brain], [t_max_brain - corrected_pmi_brain]], fmt='o', color='purple')
-        ax.text(corrected_pmi_brain, 1, f"{format_time(corrected_pmi_brain)}", ha='center', va='bottom', fontsize=8)
-        bar_height = add_vertical_bars(ax, t_min_brain, t_max_brain, 1, 'purple')
-        add_interval_values(ax, t_min_brain, t_max_brain, 1, bar_height, 'purple')
+    # Henssge brain
+    if result.henssge_brain.post_mortem_interval is not None and result.henssge_brain.confidence_interval is not None:
+        _add_mustache_box(ax, vertical_index, center=result.henssge_brain.post_mortem_interval, left=result.henssge_brain.pmi_min(), right=result.henssge_brain.pmi_max())
+        vertical_labels.append('Henssge (Brain)')
+        vertical_index += 1
 
-    if PMI_interval is not None and CI_interval is not None:
-        ax.errorbar([PMI_interval], [2], xerr=[[CI_interval], [CI_interval]], fmt='o', color='green')
-        ax.text(PMI_interval, 2, f"{format_time(PMI_interval)}", ha='center', va='bottom', fontsize=8)
-        bar_height = add_vertical_bars(ax, PMI_interval - CI_interval, PMI_interval + CI_interval, 2, 'green')
-        add_interval_values(ax, PMI_interval - CI_interval, PMI_interval + CI_interval, 2, bar_height, 'green')
+    # Baccino interval
+    if result.baccino.post_mortem_interval_interval is not None and result.baccino.confidence_interval_interval is not None:
+        _add_mustache_box(ax, vertical_index,
+                          center=result.baccino.post_mortem_interval_interval,
+                          left=result.baccino.post_mortem_interval_interval - result.baccino.confidence_interval_interval,
+                          right=result.baccino.post_mortem_interval_interval + result.baccino.confidence_interval_interval)
+        vertical_labels.append('Baccino\n(Interval)')
+        vertical_index += 1
 
-    if PMI_global is not None and CI_global is not None:
-        ax.errorbar([PMI_global], [3], xerr=[[CI_global], [CI_global]], fmt='o', color='red')
-        ax.text(PMI_global, 3, f"{format_time(PMI_global)}", ha='center', va='bottom', fontsize=8)
-        bar_height = add_vertical_bars(ax, PMI_global - CI_global, PMI_global + CI_global, 3, 'red')
-        add_interval_values(ax, PMI_global - CI_global, PMI_global + CI_global, 3, bar_height, 'red')
+    # Baccino global
+    if result.baccino.post_mortem_interval_global is not None and result.baccino.confidence_interval_global is not None:
+        _add_mustache_box(ax, vertical_index,
+                          center=result.baccino.post_mortem_interval_global,
+                          left=result.baccino.post_mortem_interval_global - result.baccino.confidence_interval_global,
+                          right=result.baccino.post_mortem_interval_global + result.baccino.confidence_interval_global)
+        vertical_labels.append('Baccino\n(Global)')
+        vertical_index += 1
 
-    if pmi_idiomuscular_reaction_min is not None and pmi_idiomuscular_reaction_max is not None:
-        if pmi_idiomuscular_reaction_max == 3:
-            ax.axvspan(3, max_value, color='gray', alpha=0.5)
-            ax.axvline(x=3, color='purple', linestyle='--', lw=2)
-            ax.text(3, 4, f"PMI < {format_time(3)}", ha='right', va='bottom', fontsize=8, color='purple')
-        elif pmi_idiomuscular_reaction_max == 5.5:
-            ax.axvspan(5.5, max_value, color='gray', alpha=0.5)
-            ax.axvline(x=5.5, color='purple', linestyle='--', lw=2)
-            ax.text(5.5, 4, f"PMI < {format_time(5.5)}", ha='right', va='bottom', fontsize=8, color='purple')
-        elif pmi_idiomuscular_reaction_max == float('inf'):
-            ax.axvspan(0, 1.5, color='gray', alpha=0.5)
-            ax.axvline(x=1.5, color='purple', linestyle='--', lw=2)
-            ax.text(1.5, 4, f"PMI > {format_time(1.5)}", ha='left', va='bottom', fontsize=8, color='purple')
-        else:
-            ax.errorbar([(pmi_idiomuscular_reaction_min + pmi_idiomuscular_reaction_max) / 2], [4],
-                        xerr=[[(pmi_idiomuscular_reaction_min + pmi_idiomuscular_reaction_max) / 2 - pmi_idiomuscular_reaction_min],
-                              [pmi_idiomuscular_reaction_max - (pmi_idiomuscular_reaction_min + pmi_idiomuscular_reaction_max) / 2]], fmt='none', color='purple')
-            bar_height = add_vertical_bars(ax, pmi_idiomuscular_reaction_min, pmi_idiomuscular_reaction_max, 4, 'purple')
-            add_interval_values(ax, pmi_idiomuscular_reaction_min, pmi_idiomuscular_reaction_max, 4, bar_height, 'purple')
+    # Idiomuscular
+    if result.idiomuscular_reaction.min is not None and result.idiomuscular_reaction.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.idiomuscular_reaction)
+        vertical_labels.append('Idiomuscular\nreaction')
+        vertical_index += 1
 
-    if pmi_rigor_min is not None and pmi_rigor_max is not None:
-        if pmi_rigor_max == float('inf'):
-            ax.axvspan(0, 24, color='gray', alpha=0.5)
-            ax.axvline(x=24, color='orange', linestyle='--', lw=2)
-            ax.text(24, 5, f"PMI > {format_time(24)}", ha='left', va='bottom', fontsize=8, color='orange')
-        elif pmi_rigor_max == 7:
-            ax.axvspan(7, max_value, color='gray', alpha=0.5)
-            ax.axvline(x=7, color='orange', linestyle='--', lw=2)
-            ax.text(7, 5, f"PMI < {format_time(7)}", ha='right', va='bottom', fontsize=8, color='orange')
-        else:
-            ax.errorbar([(pmi_rigor_min + pmi_rigor_max) / 2], [5],
-                        xerr=[[(pmi_rigor_min + pmi_rigor_max) / 2 - pmi_rigor_min], [pmi_rigor_max - (pmi_rigor_min + pmi_rigor_max) / 2]], fmt='none', color='orange')
-            bar_height = add_vertical_bars(ax, pmi_rigor_min, pmi_rigor_max, 5, 'orange')
-            add_interval_values(ax, pmi_rigor_min, pmi_rigor_max, 5, bar_height, 'orange')
+    # Rigor
+    if result.rigor.min is not None and result.rigor.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.rigor)
+        vertical_labels.append('Rigor')
+        vertical_index += 1
 
-    if pmi_lividity_min is not None and pmi_lividity_max is not None:
-        if pmi_lividity_max == float('inf'):
-            ax.axvspan(0, 3, color='gray', alpha=0.5)
-            ax.axvline(x=3, color='brown', linestyle='--', lw=2)
-            ax.text(3, 6, f"PMI > {format_time(3)}", ha='left', va='bottom', fontsize=8, color='brown')
-        elif pmi_lividity_min == 0 and pmi_lividity_max == 3:
-            ax.axvspan(3, max_value, color='gray', alpha=0.5)
-            ax.axvline(x=3, color='brown', linestyle='--', lw=2)
-            ax.text(3, 6, f"PMI < {format_time(3)}", ha='right', va='bottom', fontsize=8, color='brown')
-        else:
-            ax.errorbar([(pmi_lividity_min + pmi_lividity_max) / 2], [6],
-                        xerr=[[(pmi_lividity_min + pmi_lividity_max) / 2 - pmi_lividity_min], [pmi_lividity_max - (pmi_lividity_min + pmi_lividity_max) / 2]], fmt='none',
-                        color='brown')
-            bar_height = add_vertical_bars(ax, pmi_lividity_min, pmi_lividity_max, 6, 'brown')
-            add_interval_values(ax, pmi_lividity_min, pmi_lividity_max, 6, bar_height, 'brown')
+    # Lividity
+    if result.lividity.min is not None and result.lividity.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity)
+        vertical_labels.append('Lividity')
+        vertical_index += 1
 
-    if pmi_lividity_disappearance_min is not None and pmi_lividity_disappearance_max is not None:
-        if pmi_lividity_disappearance_max == float('inf'):
-            ax.axvspan(0, 10, color='gray', alpha=0.5)
-            ax.axvline(x=10, color='orange', linestyle='--', lw=2)
-            ax.text(10, 7, f"PMI > {format_time(10)}", ha='left', va='bottom', fontsize=8, color='orange')
-        else:
-            ax.axvspan(20, max_value, color='gray', alpha=0.5)
-            ax.axvline(x=20, color='orange', linestyle='--', lw=2)
-            ax.text(20, 7, f"PMI < {format_time(20)}", ha='right', va='bottom', fontsize=8, color='orange')
+    # Lividity Disappearance
+    if result.lividity_disappearance.min is not None and result.lividity_disappearance.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity_disappearance)
+        vertical_labels.append('Lividity\n(Disappearance)')
+        vertical_index += 1
 
-    if pmi_lividity_mobility_min is not None and pmi_lividity_mobility_max is not None:
-        if pmi_lividity_mobility_max == float('inf'):
-            ax.axvspan(0, 10, color='gray', alpha=0.5)
-            ax.axvline(x=10, color='magenta', linestyle='--', lw=2)
-            ax.text(10, 8, f"PMI > {format_time(10)}", ha='left', va='bottom', fontsize=8, color='magenta')
-        elif pmi_lividity_mobility_max == 6:
-            ax.axvspan(6, max_value, color='gray', alpha=0.5)
-            ax.axvline(x=6, color='magenta', linestyle='--', lw=2)
-            ax.text(6, 8, f"PMI < {format_time(6)}", ha='right', va='bottom', fontsize=8, color='magenta')
-        else:
-            ax.errorbar([(pmi_lividity_mobility_min + pmi_lividity_mobility_max) / 2], [8],
-                        xerr=[[(pmi_lividity_mobility_min + pmi_lividity_mobility_max) / 2 - pmi_lividity_mobility_min],
-                              [pmi_lividity_mobility_max - (pmi_lividity_mobility_min + pmi_lividity_mobility_max) / 2]], fmt='none', color='magenta')
-            bar_height = add_vertical_bars(ax, pmi_lividity_mobility_min, pmi_lividity_mobility_max, 8, 'magenta')
-            add_interval_values(ax, pmi_lividity_mobility_min, pmi_lividity_mobility_max, 8, bar_height, 'magenta')
+    # Lividity Mobility
+    if result.lividity_mobility.min is not None and result.lividity_mobility.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity_mobility)
+        vertical_labels.append('Lividity\n(Mobility)')
+        vertical_index += 1
 
-    ax.set_yticks([0, 1, 2, 3, 4, 5, 6, 7, 8])
-    ax.set_yticklabels(
-        ['Henssge (Rectal)', 'Henssge (Brain)', 'Baccino\n(Interval)', 'Baccino\n(Global)', 'Idiomuscular\nreaction', 'Rigor', 'Lividity', 'Lividity\n(Disappearance)',
-         'Lividity\n(Mobility)'])
+    # --- Ticks and Labels 
+    ax.set_yticks(range(vertical_index))
+    ax.set_yticklabels(vertical_labels)
+
+    tick_index = 0
+    for ytick in ax.get_yticklabels():
+        ytick.set_color(_pick_color(tick_index))
+        tick_index += 1
+        
     ax.set_ylabel('Method', labelpad=10)
     ax.set_xlabel('Estimated Post-Mortem Interval (hours)')
     ax.set_title('Comparison of Estimated Post-Mortem Intervals', pad=10)
 
     fig.subplots_adjust(left=0.18, bottom=0.15, top=0.9, right=0.92)
     ax.set_xlim(left=0)
-    ax.set_ylim(bottom=-0.5, top=8.5)
     ax.grid(True, alpha=0.3)
 
     # Adjust label sizes to optimize space
