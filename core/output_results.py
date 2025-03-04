@@ -36,6 +36,12 @@ class HenssgeRectalResults:
         self.corrective_factor = corrective_factor
         self.error_message = error_message
 
+    def pmi_min(self):
+        return self.post_mortem_interval - self.confidence_interval
+    
+    def pmi_max(self):
+        return self.post_mortem_interval + self.confidence_interval
+
     def __str__(self):
         """
         Display results as string
@@ -45,9 +51,7 @@ class HenssgeRectalResults:
         if not self.error_message:
             return to_str + self.error_message
 
-        to_str += (f"Estimated PMI: {format_time(self.post_mortem_interval)} "
-                   f"[{format_time(self.post_mortem_interval - self.confidence_interval)} - {format_time(self.post_mortem_interval + self.confidence_interval)}]")
-        to_str += "\n"
+        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]\n"
         to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}\n"
         to_str += f"Thermal Quotient (Q): {self.thermal_quotient:.2f}\n"
         to_str += f"Corrective factor (Cf): {self.corrective_factor:.2f}\n"
@@ -78,6 +82,12 @@ class HenssgeBrainResults:
         self.post_mortem_interval = post_mortem_interval
         self.error_message = error_message
 
+    def pmi_min(self):
+        return self.post_mortem_interval - self.confidence_interval
+
+    def pmi_max(self):
+        return self.post_mortem_interval + self.confidence_interval
+
     def __str__(self):
         """
         Display results as string
@@ -87,9 +97,7 @@ class HenssgeBrainResults:
         if not self.error_message:
             return to_str + self.error_message
 
-        to_str += (f"Estimated PMI: {format_time(self.post_mortem_interval)} "
-                   f"[{format_time(self.post_mortem_interval - self.confidence_interval)} - {format_time(self.post_mortem_interval + self.confidence_interval)}]")
-        to_str += "\n"
+        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]\n"
         to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}\n"
 
 
