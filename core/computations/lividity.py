@@ -1,5 +1,15 @@
-from core.constants import LIVIDITY_INTERVALS, LividityType
+from core.constants import LividityType
 from core.output_results import PostMortemIntervalResults
+
+# Constants
+LIVIDITY_INTERVALS = {
+    LividityType.NOT_SPECIFIED: (float('nan'), float('nan')),
+    LividityType.ABSENT: (0.0, 3.0),
+    LividityType.DEVELOPMENT: (0.25, 3.0),
+    LividityType.CONFLUENCE: (1.0, 4.0),
+    LividityType.MAXIMUM: (3.0, float('inf')),
+}
+"""Intervals for lividity (in hours ?)"""
 
 
 # Main computation
