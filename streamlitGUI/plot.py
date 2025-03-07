@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -12,7 +13,7 @@ from core.output_results import HenssgeRectalResults, HenssgeBrainResults, Outpu
 from core.tools import format_time
 
 
-def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: HenssgeRectalResults) -> Figure:
+def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: HenssgeRectalResults) -> Optional[Figure]:
     """
     Plots the post-mortem thermal decay curve according to the Henssge equation.
 
@@ -33,6 +34,12 @@ def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: H
     Figure
         Matplotlib Figure with the plotted graph.
     """
+    
+    # Check result
+    if result.error_message:
+        return None
+    
+    # Prepare figure
     fig = Figure(figsize=(6, 4), dpi=100)
     ax = fig.add_subplot(111)
 
@@ -60,7 +67,7 @@ def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: H
     return fig
 
 
-def plot_temperature_henssge_brain(input_parameters: InputParameters, result: HenssgeBrainResults) -> Figure:
+def plot_temperature_henssge_brain(input_parameters: InputParameters, result: HenssgeBrainResults) -> Optional[Figure]:
     """
     Plots the post-mortem brain thermal decay curve according to the Henssge equation.
 
@@ -82,6 +89,12 @@ def plot_temperature_henssge_brain(input_parameters: InputParameters, result: He
     Figure
         Matplotlib Figure with the plotted graph.
     """
+
+    # Check result
+    if result.error_message:
+        return None
+
+    # Prepare figure
     fig = Figure(figsize=(6, 4), dpi=100)
     ax = fig.add_subplot(111)
 
@@ -187,7 +200,7 @@ def _plot_post_mortem_interval_result(ax: plt.Axes, vertical_index: int, result:
         _add_mustache_box(ax, vertical_index, left=result.min, right=result.max)
 
 
-def plot_comparative_pmi_results(result: OutputResults) -> Figure:
+def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
     """
     Plots a comparative graph of different post-mortem interval (PMI) estimations.
 
@@ -298,6 +311,10 @@ def plot_comparative_pmi_results(result: OutputResults) -> Figure:
         _plot_post_mortem_interval_result(ax, vertical_index, result.lividity_mobility)
         vertical_labels.append('Lividity\n(Mobility)')
         vertical_index += 1
+
+    # If no plot (vertical_index is still 0)
+    if vertical_index == 0:
+        return None
 
     # --- Ticks and Labels 
     ax.set_yticks(range(vertical_index))
