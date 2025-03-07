@@ -223,14 +223,24 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
     # --- Gradutions
     # Create Custom Graduations
     ticks = list(range(0, 21, 4))
-    values = [v for v in [result.henssge_rectal.pmi_max(), result.henssge_brain.pmi_max(), result.baccino.post_mortem_interval_interval,
-                          result.baccino.post_mortem_interval_global, result.idiomuscular_reaction.max, result.rigor.max, result.lividity.max,
-                          result.lividity_disappearance.max, result.lividity_mobility.max] if v is not None]
-    if result.baccino.confidence_interval_interval is not None:
-        values.append(result.baccino.post_mortem_interval_interval + result.baccino.confidence_interval_interval)
-    if result.baccino.confidence_interval_global is not None:
-        values.append(result.baccino.post_mortem_interval_global + result.baccino.confidence_interval_global)
-    max_value = max(values) if values else 0
+    
+    # Retrieve all max values
+    max_values = []
+    if not result.henssge_rectal.error_message:
+        max_values.append(result.henssge_rectal.pmi_max())
+    if not result.henssge_brain.error_message:
+        max_values.append(result.henssge_brain.pmi_max())
+    if not result.baccino.error_message:
+        max_values.append(result.baccino.post_mortem_interval_interval)
+        max_values.append(result.baccino.post_mortem_interval_global)
+        max_values.append(result.baccino.post_mortem_interval_interval + result.baccino.confidence_interval_interval)
+        max_values.append(result.baccino.post_mortem_interval_global + result.baccino.confidence_interval_global)
+        
+    for r in [result.idiomuscular_reaction, result.rigor, result.lividity, result.lividity_disappearance, result.lividity_mobility]:
+        if r.max is not None:
+            max_values.append(r.max)
+    
+    max_value = max(max_values) if max_values else 0
 
     if max_value <= 20:
         ticks = list(range(0, int(max_value) + 1, 4))
@@ -240,7 +250,7 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
 
     # Determine max value for the x-axis
     default_max = 10  # defaut value for the x-axis
-    filtered_max_values = [v for v in values if not (math.isinf(v) or math.isnan(v))]
+    filtered_max_values = [v for v in max_values if not (math.isinf(v) or math.isnan(v))]
     max_value = max(max(filtered_max_values) if filtered_max_values else default_max, default_max)
 
     ax.set_xlim(left=0.0, right=max_value)
