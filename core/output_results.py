@@ -177,24 +177,27 @@ class PostMortemIntervalResults:
         self.error_message = error_message
 
     def __str__(self):
-        """
-        Display results as string
-        """
-        to_str = f"**{self.name} :**\n"
-
+        # Display results as string
+        to_str = f"**{self.name}** "
+        
         if self.error_message:
-            return to_str + self.error_message
-
-        if self.min and np.isclose(self.min, 0.0) and self.max and self.max != float('inf'):
-            return to_str + f"Estimated PMI [{format_time(self.min)} - {format_time(self.max)}]"
-
-        if not self.min or np.isclose(self.min, 0.0):
-            return to_str + f"Estimated PMI < {format_time(self.max)}"
-
-        if not self.max or self.max == float('inf'):
-            return to_str + f"Estimated PMI > {format_time(self.min)}"
-
-        return to_str + "Not specified"
+            return to_str + f": {self.error_message}"
+        
+        # Check if both values are defined and not NaN
+        if self.min is not None and not np.isnan(self.min) and self.max is not None and not np.isnan(self.max):
+            return to_str + f": Estimated PMI between {format_time(self.min)} and {format_time(self.max)}"
+        
+        # If only min is defined and not NaN
+        elif self.min is not None and not np.isnan(self.min):
+            return to_str + f": Estimated PMI > {format_time(self.min)}"
+        
+        # If only max is defined and not NaN
+        elif self.max is not None and not np.isnan(self.max):
+            return to_str + f": Estimated PMI < {format_time(self.max)}"
+        
+        # If no value is defined or all are NaN
+        else:
+            return to_str + ": Not specified"
 
 
 class OutputResults:
@@ -205,10 +208,11 @@ class OutputResults:
         self.henssge_brain: Optional[HenssgeBrainResults] = None
         self.baccino: Optional[BaccinoResults] = None
         self.idiomuscular_reaction: Optional[PostMortemIntervalResults] = None
+        self.rigor: Optional[PostMortemIntervalResults] = None
         self.lividity: Optional[PostMortemIntervalResults] = None
         self.lividity_disappearance: Optional[PostMortemIntervalResults] = None
         self.lividity_mobility: Optional[PostMortemIntervalResults] = None
-        self.rigor: Optional[PostMortemIntervalResults] = None
+        
 
     def __str__(self):
         """
@@ -219,10 +223,10 @@ class OutputResults:
             str(self.henssge_brain),
             str(self.baccino),
             str(self.idiomuscular_reaction),
+            str(self.rigor),
             str(self.lividity),
             str(self.lividity_disappearance),
-            str(self.lividity_mobility),
-            str(self.rigor)
+            str(self.lividity_mobility)
         ])
         
         return test

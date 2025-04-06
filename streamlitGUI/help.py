@@ -1,10 +1,44 @@
 import streamlit as st
 def build_help_section():
-
+    """
+    Creates a comprehensive help section using expandable containers for the EasyPMI application.
+    
+    This function builds a detailed help interface organized into multiple tabs within a Streamlit
+    expander component. The expander pattern helps keep the UI clean while providing access to
+    detailed documentation:
+    - Getting Started: basic navigation and usage instructions
+    - Cooling Methods: explaining Henssge and Baccino calculation methods
+    - Thanatological Signs: information about post-mortem changes
+    - Parameters: details about input parameters and corrective factors
+       
+    Notes:
+    ------
+    st.expander usage:
+        - Creates a collapsible container that can be expanded/collapsed by users
+        - Syntax: st.expander(label, expanded=True, icon=None)
+        - Parameters:
+          * label (str): Header text for the expander (supports Markdown)
+          * expanded (bool): If True, initializes as expanded (defaults to True)
+          * icon (str, optional): An emoji/icon to display next to the label
+    
+    Alternative approaches:
+        - st.sidebar: Could place help content in sidebar instead of main area
+        - st.columns: Could organize help in horizontal columns instead of tabs
+        - st.container: Could use simple containers with manual toggles
+        - st.popups/modals: Third-party components could create popup help windows
+        - External documentation: Could link to external docs instead of in-app help
+        
+    Implementation note:
+        - The current implementation uses an expander with tabs for optimal organization
+        - The expander is set to expanded=True by default to ensure visibility
+        - Images are included to illustrate corrective factors
+        - Warning: Nesting expanders inside other expanders is not supported by Streamlit
+    """
     # Picture path
     image_path1 = "Images/Image_1.PNG"
     image_path2 = "Images/Image_2.PNG"
     
+    # User Guide
     with st.expander("Help and User Guide", expanded=True):
         tab1, tab2, tab3, tab4 = st.tabs(["Getting Started", "Cooling Methods", "Thanatological Signs", "Parameters"])
 
@@ -16,12 +50,13 @@ def build_help_section():
             
             ##### Quick Tutorial
             1. **Navigation**: Use the sidebar on the left to enter parameters
-            2. **Data Entry**: Use ↹ (*Tab*) to to validate a variable and automatically move to the next field.  
-                a. You can manually determine the corrective factor, it will deactivate dropdnown lists.  
-                b. You can use predefined corrective factor : 'Body Condition', 'Environment', 'Supporting base' dropdown lists.*
-            3. **Calculate**: Click "Calculate" to get the results
-            4. **Reset**: Click "Reset" to clear entries
-            5. **Save**: Click "Download PDF" saves your results in PDF format
+            2. **Data Entry**: Use ↹ (*Tab*) to validate a variable and automatically move to the next field.
+            3. **Corrective Factor**: Choose your preferred method:
+                - **Predefined mode**: Use the dropdown lists for 'Body Condition', 'Environment', and 'Supporting base'
+                - **Manual mode**: Directly enter a specific corrective factor value
+            4. **Calculate**: Click "Calculate" to get the results
+            5. **Reset**: Click "Reset" to clear all entries
+            6. **Save**: Click "Download PDF" to save your results in PDF format
             
             ##### Error Handling
             If you encounter errors, check that input values are within acceptable ranges.

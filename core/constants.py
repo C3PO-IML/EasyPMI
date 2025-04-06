@@ -170,11 +170,11 @@ class IdiomuscularReactionType(Enum):
             case IdiomuscularReactionType.NOT_SPECIFIED:
                 return "Not Specified"
             case IdiomuscularReactionType.ZSAKO:
-                return "Muscle contraction leading to flexion of the limb"
+                return "Zsako phenomenon"
             case IdiomuscularReactionType.STRONG_REVERSIBLE:
-                return "Visible contraction band that can be seen with the naked eye"
+                return "Strong and reversible"
             case IdiomuscularReactionType.WEAK_PERSISTENT:
-                return "Discrete, localized contraction that is not visible but palpable"
+                return "Weak and persistent"
             case IdiomuscularReactionType.NO_REACTION:
                 return "No reaction"
 
@@ -207,15 +207,15 @@ class RigorType(Enum):
             case RigorType.NOT_SPECIFIED:
                 return "Not Specified"
             case RigorType.NOT_ESTABLISHED:
-                return "There is no evidence of rigor mortis having set in"
+                return "Not established"
             case RigorType.POSSIBLE_REESTABLISHMENT:
-                return "Early signs of rigor mortis may be present, but it is not fully established"
+                return "Begining/Reestablishment"
             case RigorType.COMPLETE_RIGIDITY:
-                return "Rigor mortis is fully established, with the body exhibiting maximal stiffness"
+                return "Complete rigidity"
             case RigorType.PERSISTENCE:
-                return "Rigor mortis persists or may be partially resolved"
+                return "Persistence"
             case RigorType.RESOLUTION:
-                return "Rigor mortis has fully resolved"
+                return "Resolution"
 
         return str(self.value)
 
@@ -243,13 +243,13 @@ class LividityType(Enum):
             case LividityType.NOT_SPECIFIED:
                 return "Not Specified"
             case LividityType.ABSENT:
-                return "There is no lividity present"
+                return "Absent"
             case LividityType.DEVELOPMENT:
-                return "Lividity is beginning to develop"
+                return "Development"
             case LividityType.CONFLUENCE:
-                return "Lividity is becoming more pronounced and merging"
+                return "Confluence"
             case LividityType.MAXIMUM:
-                return "Lividity has reached its maximum intensity"
+                return "Maximum"
 
         return str(self.value)
 
@@ -271,9 +271,9 @@ class LividityDisappearanceType(Enum):
             case LividityDisappearanceType.NOT_SPECIFIED:
                 return "Not Specified"
             case LividityDisappearanceType.COMPLETE:
-                return "Lividity disappears totaly at light pressure"
+                return "Complete disappearance"
             case LividityDisappearanceType.INCOMPLETE:
-                return "Lividity might disappears only with strong pressure (with forceps)"
+                return "Incomplete disappearance"
 
         return str(self.value)
 
@@ -285,7 +285,7 @@ class LividityMobilityType(Enum):
     """Not specified"""
 
     COMPLETE = auto()
-    """Lividity can be completely displaced when the body is turned"""
+    """Completely displaced when the body is turned"""
 
     PARTIAL = auto()
     """Lividity can be partially displaced when the body is turned"""
@@ -298,11 +298,11 @@ class LividityMobilityType(Enum):
             case LividityMobilityType.NOT_SPECIFIED:
                 return "Not Specified"
             case LividityMobilityType.COMPLETE:
-                return "Lividity can be completely displaced when the body is turned"
+                return "Complete displacement"
             case LividityMobilityType.PARTIAL:
-                return "Lividity can be partially displaced when the body is turned"
+                return "Partial displacement"
             case LividityMobilityType.LITTLE_PALOR_ONLY:
-                return "Lividity shows only a slight change in color (or non change) when the body is turned"
+                return "Little palor only"
 
         return str(self.value)
 

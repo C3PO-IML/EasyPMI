@@ -1,3 +1,4 @@
+import math
 
 def format_time(time: float) -> str:
     """
@@ -15,6 +16,13 @@ def format_time(time: float) -> str:
     str
         Formatted time in hours and minutes
     """
+    # verifying if the time is NaN or infinite
+    if math.isnan(time):
+        return "NaN"
+    if math.isinf(time):
+        return "∞" 
+    
+    # Formating the time
     if time == float('inf'):
         return "∞"
     hours = int(time)

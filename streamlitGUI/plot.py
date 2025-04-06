@@ -176,16 +176,16 @@ def _add_zone_box(ax: plt.Axes, vertical_index: int, position: float, valid_side
     direction = ""
     if valid_side == 'upper':
         text = f"PMI > {format_time(position)}"
-        direction = 'right'
-        left = position
-        right = x_max
-    elif valid_side == 'lower':
-        text = f"PMI < {format_time(position)}"
         direction = 'left'
         left = x_min
         right = position
+    elif valid_side == 'lower':
+        text = f"PMI < {format_time(position)}"
+        direction = 'right'
+        left = position
+        right = x_max
 
-    ax.axvspan(xmin=left, xmax=right, color=color, alpha=0.2)
+    ax.axvspan(xmin=left, xmax=right, color="grey", alpha=0.2)
     ax.axvline(x=position, color=color, linestyle='--', lw=2)
     ax.text(position, vertical_index, text, ha=direction, va='bottom', fontsize=8, color=color)
 
@@ -262,25 +262,34 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
     vertical_index = 0
     vertical_labels = []    
     
-    # Henssge rectal
-    if result.henssge_rectal.post_mortem_interval is not None and result.henssge_rectal.confidence_interval is not None:
-        _add_mustache_box(ax, vertical_index, center=result.henssge_rectal.post_mortem_interval, left=result.henssge_rectal.pmi_min(), right=result.henssge_rectal.pmi_max())
-        vertical_labels.append('Henssge (Rectal)')
+    # Lividity Disappearance
+    if result.lividity_disappearance.min is not None and result.lividity_disappearance.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity_disappearance)
+        vertical_labels.append('Lividity\n(Disappearance)')
         vertical_index += 1
 
-    # Henssge brain
-    if result.henssge_brain.post_mortem_interval is not None and result.henssge_brain.confidence_interval is not None:
-        _add_mustache_box(ax, vertical_index, center=result.henssge_brain.post_mortem_interval, left=result.henssge_brain.pmi_min(), right=result.henssge_brain.pmi_max())
-        vertical_labels.append('Henssge (Brain)')
+    # Lividity Mobility
+    if result.lividity_mobility.min is not None and result.lividity_mobility.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity_mobility)
+        vertical_labels.append('Lividity\n(Mobility)')
         vertical_index += 1
 
-    # Baccino interval
-    if result.baccino.post_mortem_interval_interval is not None and result.baccino.confidence_interval_interval is not None:
-        _add_mustache_box(ax, vertical_index,
-                          center=result.baccino.post_mortem_interval_interval,
-                          left=result.baccino.post_mortem_interval_interval - result.baccino.confidence_interval_interval,
-                          right=result.baccino.post_mortem_interval_interval + result.baccino.confidence_interval_interval)
-        vertical_labels.append('Baccino\n(Interval)')
+    # Lividity
+    if result.lividity.min is not None and result.lividity.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity)
+        vertical_labels.append('Lividity')
+        vertical_index += 1
+
+    # Rigor
+    if result.rigor.min is not None and result.rigor.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.rigor)
+        vertical_labels.append('Rigor')
+        vertical_index += 1
+
+    # Idiomuscular
+    if result.idiomuscular_reaction.min is not None and result.idiomuscular_reaction.max is not None:
+        _plot_post_mortem_interval_result(ax, vertical_index, result.idiomuscular_reaction)
+        vertical_labels.append('Idiomuscular\nreaction')
         vertical_index += 1
 
     # Baccino global
@@ -292,34 +301,25 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
         vertical_labels.append('Baccino\n(Global)')
         vertical_index += 1
 
-    # Idiomuscular
-    if result.idiomuscular_reaction.min is not None and result.idiomuscular_reaction.max is not None:
-        _plot_post_mortem_interval_result(ax, vertical_index, result.idiomuscular_reaction)
-        vertical_labels.append('Idiomuscular\nreaction')
+    # Baccino interval
+    if result.baccino.post_mortem_interval_interval is not None and result.baccino.confidence_interval_interval is not None:
+        _add_mustache_box(ax, vertical_index,
+                          center=result.baccino.post_mortem_interval_interval,
+                          left=result.baccino.post_mortem_interval_interval - result.baccino.confidence_interval_interval,
+                          right=result.baccino.post_mortem_interval_interval + result.baccino.confidence_interval_interval)
+        vertical_labels.append('Baccino\n(Interval)')
         vertical_index += 1
 
-    # Rigor
-    if result.rigor.min is not None and result.rigor.max is not None:
-        _plot_post_mortem_interval_result(ax, vertical_index, result.rigor)
-        vertical_labels.append('Rigor')
+    # Henssge brain
+    if result.henssge_brain.post_mortem_interval is not None and result.henssge_brain.confidence_interval is not None:
+        _add_mustache_box(ax, vertical_index, center=result.henssge_brain.post_mortem_interval, left=result.henssge_brain.pmi_min(), right=result.henssge_brain.pmi_max())
+        vertical_labels.append('Henssge (Brain)')
         vertical_index += 1
 
-    # Lividity
-    if result.lividity.min is not None and result.lividity.max is not None:
-        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity)
-        vertical_labels.append('Lividity')
-        vertical_index += 1
-
-    # Lividity Disappearance
-    if result.lividity_disappearance.min is not None and result.lividity_disappearance.max is not None:
-        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity_disappearance)
-        vertical_labels.append('Lividity\n(Disappearance)')
-        vertical_index += 1
-
-    # Lividity Mobility
-    if result.lividity_mobility.min is not None and result.lividity_mobility.max is not None:
-        _plot_post_mortem_interval_result(ax, vertical_index, result.lividity_mobility)
-        vertical_labels.append('Lividity\n(Mobility)')
+    # Henssge rectal
+    if result.henssge_rectal.post_mortem_interval is not None and result.henssge_rectal.confidence_interval is not None:
+        _add_mustache_box(ax, vertical_index, center=result.henssge_rectal.post_mortem_interval, left=result.henssge_rectal.pmi_min(), right=result.henssge_rectal.pmi_max())
+        vertical_labels.append('Henssge (Rectal)')
         vertical_index += 1
 
     # If no plot (vertical_index is still 0)

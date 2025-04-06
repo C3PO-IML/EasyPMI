@@ -9,6 +9,25 @@ from streamlitGUI.tools import convert_decimal_separator
 
 
 def _build_input_parameters() -> InputParameters:
+    """
+    Constructs an InputParameters object from the current Streamlit session state.
+    
+    This function extracts all user inputs from the Streamlit session state and converts
+    them to appropriate types needed for the calculation engine. Text inputs are 
+    converted from string to float values where appropriate.
+    
+    Returns:
+    --------
+    InputParameters
+        An object containing all parameters needed for PMI calculations
+    
+    Notes:
+    ------
+    - Numeric inputs are processed through convert_decimal_separator() to handle
+      different decimal formats (comma vs point)
+    - Empty string inputs are converted to None to indicate missing data
+    - Enumeration values are passed directly from the session state
+    """
     return InputParameters(
         tympanic_temperature=convert_decimal_separator(st.session_state.input_t_tympanic) if st.session_state.input_t_tympanic else None,
         rectal_temperature=convert_decimal_separator(st.session_state.input_t_rectal) if st.session_state.input_t_rectal else None,
@@ -25,6 +44,21 @@ def _build_input_parameters() -> InputParameters:
     )
 
 def _init_state() -> None:
+    """
+    Initializes the Streamlit session state with default values.
+    
+    This function checks for the existence of each required session state variable
+    and initializes it with an appropriate default value if not already present.
+    It ensures that all necessary variables exist before the application renders.
+    
+    The initialization includes:
+    - Temperature input fields (empty strings)
+    - Body parameters (empty strings or default enumerations)
+    - Thanatological signs (default to NOT_SPECIFIED)
+    - Result storage variables (empty string or None for figures)
+    Returns:
+        None
+    """
     if 'input_t_tympanic' not in st.session_state:
         st.session_state.input_t_tympanic = ""
     if 'input_t_rectal' not in st.session_state:
@@ -33,6 +67,8 @@ def _init_state() -> None:
         st.session_state.input_t_ambient = ""
     if 'input_M' not in st.session_state:
         st.session_state.input_M = ""
+    if 'correction_mode' not in st.session_state:
+        st.session_state.correction_mode = "Predefined (using dropdown lists)"
     if 'input_Cf' not in st.session_state:
         st.session_state.input_Cf = ""
     if 'body_condition' not in st.session_state:
@@ -63,8 +99,20 @@ def _init_state() -> None:
 
 def _reset() -> None:
     """
-    Resets all fields in the user interface.
-    This function clears all user inputs and resets the graphs.
+    Resets all fields in the user interface to their default state.
+    
+    This function:
+    1. Clears all session state variables to remove user inputs
+    2. Explicitly resets figure objects to None
+    3. Displays a success message to confirm the reset
+    4. Forces a page rerun to refresh all UI components
+    
+    This provides users with a clean slate for entering new data.
+    
+    Returns:
+    --------
+    None
+        The function has side effects on the session state but returns no value
     """
     # Clear all session state variables
     for key in list(st.session_state.keys()):
@@ -81,6 +129,26 @@ def _reset() -> None:
 
 
 def _on_calculate():
+    """
+    Processes user inputs and generates results when the Calculate button is clicked.
+    
+    This function:
+    1. Builds an InputParameters object from the current session state
+    2. Runs the computation engine to calculate PMI estimates
+    3. Stores the textual results in the session state
+    4. Generates three visualization plots:
+       - Henssge rectal temperature model
+       - Henssge brain/tympanic temperature model
+       - Comparative visualization of all calculation methods
+    
+    The results and visualizations are stored in the session state for display
+    in the main application area.
+    
+    Returns:
+    --------
+    None
+        The function updates the session state but returns no value
+    """
     # Inputs
     input_parameters = _build_input_parameters()
 
@@ -128,32 +196,51 @@ if __name__ == '__main__':
         key="input_M"
     )
 
-    st.sidebar.text_input(
-        "Corrective factor (Cf) : ",
-        key="input_Cf"
+    # Radio selector for choosing between manual and predefined corrective factor
+    correction_mode = st.sidebar.radio(
+        "Corrective factor mode:",
+        options=["Predefined (using dropdown lists)", "Manual input"],
+        key="correction_mode"
     )
 
-    # Selectbox with session_state keys
-    body_condition_selectbox = st.sidebar.selectbox(
-        "Body condition :",
-        options=BodyCondition,
-        disabled=bool(st.session_state.input_Cf),
-        key="body_condition",
-    )
+    # Display different inputs based on the selected mode
+    if st.session_state.correction_mode == "Manual input":
+        # Show only manual input field
+        st.sidebar.text_input(
+            "Corrective factor (Cf) : ",
+            key="input_Cf"
+        )
+        
+        # Hide the dropdown lists but keep them in session state with default values
+        if 'body_condition' not in st.session_state:
+            st.session_state.body_condition = BodyCondition.NOT_SPECIFIED
+        if 'environment' not in st.session_state:
+            st.session_state.environment = EnvironmentType.NOT_SPECIFIED
+        if 'supporting_base' not in st.session_state:
+            st.session_state.supporting_base = SupportingBase.NOT_SPECIFIED
+    else:
+        # Show predefined options with dropdown lists
+        # Reset manual input if switching from manual to predefined
+        if 'input_Cf' in st.session_state:
+            st.session_state.input_Cf = ""
+            
+        body_condition_selectbox = st.sidebar.selectbox(
+            "Body condition :",
+            options=BodyCondition,
+            key="body_condition",
+        )
 
-    environment_selectbox = st.sidebar.selectbox(
-        "Environment :",
-        options=EnvironmentType,
-        disabled=bool(st.session_state.input_Cf),
-        key="environment",
-    )
+        environment_selectbox = st.sidebar.selectbox(
+            "Environment :",
+            options=EnvironmentType,
+            key="environment",
+        )
 
-    supporting_base_selectbox = st.sidebar.selectbox(
-        "Supporting base :",
-        options=SupportingBase,
-        disabled=bool(st.session_state.input_Cf),
-        key="supporting_base",
-    )
+        supporting_base_selectbox = st.sidebar.selectbox(
+            "Supporting base :",
+            options=SupportingBase,
+            key="supporting_base",
+        )
 
     # Thanatological signs
     st.sidebar.header("Thanatological Signs")
