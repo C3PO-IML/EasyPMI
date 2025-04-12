@@ -133,19 +133,19 @@ def generate_pdf() -> bytes:
     c.setFont("Helvetica-Bold", 14)
     c.drawString(50, height - 30, "Graph 1 : Henssge Evolution (Rectal)")
     c.drawString(width / 2 + 50, height - 30, "Graph 2 : Henssge Evolution (Brain)")
-    c.drawString(50, height / 2 - 30, "Graph 3 : Methods Comparison")
+    c.drawString(50, height / 2, "Graph 3 : Methods Comparison")
 
     # Add graphs if they exist
-    if hasattr(st.session_state, 'fig_henssge') and st.session_state.fig_henssge is not None:
+    if hasattr(st.session_state, 'fig_henssge_rectal') and st.session_state.fig_henssge_rectal is not None:
         img_data_1 = io.BytesIO()
-        st.session_state.fig_henssge.savefig(img_data_1, format='png')
+        st.session_state.fig_henssge_rectal.savefig(img_data_1, format='png')
         img_data_1.seek(0)
         img_1 = ImageReader(img_data_1)
         img_width_1, img_height_1 = img_1.getSize()
         scale_1 = min((width / 2 - 30) / img_width_1, (height / 2 - 30) / img_height_1)
         final_width_1 = img_width_1 * scale_1
         final_height_1 = img_height_1 * scale_1
-        c.drawImage(img_1, 20, height - 50 - final_height_1, width=final_width_1, height=final_height_1)
+        c.drawImage(img_1, 20, height - 36 - final_height_1, width=final_width_1, height=final_height_1)
         img_data_1.close()
 
     if hasattr(st.session_state, 'fig_henssge_brain') and st.session_state.fig_henssge_brain is not None:
@@ -157,7 +157,7 @@ def generate_pdf() -> bytes:
         scale_2 = min((width / 2 - 30) / img_width_2, (height / 2 - 30) / img_height_2)
         final_width_2 = img_width_2 * scale_2
         final_height_2 = img_height_2 * scale_2
-        c.drawImage(img_2, width / 2 + 20, height - 50 - final_height_2, width=final_width_2, height=final_height_2)
+        c.drawImage(img_2, width / 2 + 20, height - 36 - final_height_2, width=final_width_2, height=final_height_2)
         img_data_2.close()
 
     if hasattr(st.session_state, 'fig_comparison') and st.session_state.fig_comparison is not None:
@@ -169,7 +169,7 @@ def generate_pdf() -> bytes:
         scale_3 = min((width - 20) / img_width_3, (height / 2 - 20) / img_height_3)
         final_width_3 = img_width_3 * scale_3
         final_height_3 = img_height_3 * scale_3
-        c.drawImage(img_3, 00, 40, width=final_width_3, height=final_height_3)
+        c.drawImage(img_3, 00, 00, width=final_width_3, height=final_height_3)
         img_data_3.close()
 
     c.save()
