@@ -98,7 +98,7 @@ def _compute_adjusted_corrective_factor(corrective_factor: float, body_mass: flo
         Adjusted correction factor
     """
 
-    if body_condition == BodyCondition.NAKED and environment == EnvironmentType.STILL_AIR and supporting_base == SupportingBase.INDIFFERENT:
-        return 1.0
-
+    if corrective_factor == 1.0 or body_mass == 70:
+        return corrective_factor
+    
     return (-1.2815 / ((body_mass ** -0.625 - 0.0284) * (-3.24596 * np.exp(-0.89959 * corrective_factor)) - 0.0354)) ** 1.6 / body_mass

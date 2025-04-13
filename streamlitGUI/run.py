@@ -133,10 +133,11 @@ def _on_calculate():
     Processes user inputs and generates results when the Calculate button is clicked.
     
     This function:
-    1. Builds an InputParameters object from the current session state
-    2. Runs the computation engine to calculate PMI estimates
-    3. Stores the textual results in the session state
-    4. Generates three visualization plots:
+    1. Closes the help section if it is open
+    2. Builds an InputParameters object from the current session state
+    3. Runs the computation engine to calculate PMI estimates
+    4. Stores the textual results in the session state
+    5. Generates three visualization plots:
        - Henssge rectal temperature model
        - Henssge brain/tympanic temperature model
        - Comparative visualization of all calculation methods
@@ -149,6 +150,9 @@ def _on_calculate():
     None
         The function updates the session state but returns no value
     """
+    # Close help section if open
+    st.session_state.help_open = False
+    
     # Inputs
     input_parameters = _build_input_parameters()
 
@@ -167,6 +171,8 @@ if __name__ == '__main__':
     st.title("EasyPMI")
 
     # Help section
+    if 'help_open' not in st.session_state:
+        st.session_state.help_open = True
     build_help_section()
 
     # Initialize session variables
@@ -276,9 +282,8 @@ if __name__ == '__main__':
 
     # Action buttons
 
-    if st.sidebar.button("Calculate"):
-        _on_calculate()
-
+    st.sidebar.button("Calculate", on_click=_on_calculate)
+        
     if st.sidebar.button("Reset"):
         _reset()
 

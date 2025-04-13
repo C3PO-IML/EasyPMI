@@ -1,4 +1,5 @@
 import streamlit as st
+
 def build_help_section():
     """
     Creates a comprehensive help section using expandable containers for the EasyPMI application.
@@ -39,7 +40,7 @@ def build_help_section():
     image_path2 = "Images/Image_2.PNG"
     
     # User Guide
-    with st.expander("Help and User Guide", expanded=True):
+    with st.expander("Help and User Guide", expanded=st.session_state.help_open):
         tab1, tab2, tab3, tab4 = st.tabs(["Getting Started", "Cooling Methods", "Thanatological Signs", "Parameters"])
 
         with tab1:
