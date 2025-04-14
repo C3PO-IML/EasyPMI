@@ -37,9 +37,13 @@ class HenssgeRectalResults:
         self.error_message = error_message
 
     def pmi_min(self):
+        if self.post_mortem_interval is None or self.confidence_interval is None:
+            return None
         return self.post_mortem_interval - self.confidence_interval
-    
+        
     def pmi_max(self):
+        if self.post_mortem_interval is None or self.confidence_interval is None:
+            return None
         return self.post_mortem_interval + self.confidence_interval
 
     def __str__(self):
@@ -50,6 +54,13 @@ class HenssgeRectalResults:
 
         if self.error_message:
             return to_str + self.error_message
+        if self.post_mortem_interval is None:
+            return to_str + "Calculation not performed or failed."
+
+        pmi_min_val = self.pmi_min()
+        pmi_max_val = self.pmi_max()
+        pmi_min_str = format_time(pmi_min_val) if pmi_min_val is not None else 'N/A'
+        pmi_max_str = format_time(pmi_max_val) if pmi_max_val is not None else 'N/A'
 
         to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]  \n"
         to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}  \n"
@@ -83,9 +94,13 @@ class HenssgeBrainResults:
         self.error_message = error_message
 
     def pmi_min(self):
+        if self.post_mortem_interval is None or self.confidence_interval is None:
+            return None
         return self.post_mortem_interval - self.confidence_interval
 
     def pmi_max(self):
+        if self.post_mortem_interval is None or self.confidence_interval is None:
+            return None
         return self.post_mortem_interval + self.confidence_interval
 
     def __str__(self):
@@ -96,6 +111,13 @@ class HenssgeBrainResults:
 
         if self.error_message:
             return to_str + self.error_message
+        if self.post_mortem_interval is None:
+             return to_str + "Calculation not performed or failed."
+        
+        pmi_min_val = self.pmi_min()
+        pmi_max_val = self.pmi_max()
+        pmi_min_str = format_time(pmi_min_val) if pmi_min_val is not None else 'N/A'
+        pmi_max_str = format_time(pmi_max_val) if pmi_max_val is not None else 'N/A'
 
         to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]  \n"
         to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}"
@@ -144,6 +166,13 @@ class BaccinoResults:
 
         if self.error_message:
             return to_str + self.error_message
+        if self.post_mortem_interval_interval is None or self.post_mortem_interval_global is None:
+            return to_str + "Calculation not performed or failed."
+        
+        min_interval = self.post_mortem_interval_interval - self.confidence_interval_interval
+        max_interval = self.post_mortem_interval_interval + self.confidence_interval_interval
+        min_global = self.post_mortem_interval_global - self.confidence_interval_global
+        max_global = self.post_mortem_interval_global + self.confidence_interval_global
 
         to_str += (f"Estimated PMI (Interval Method): {format_time(self.post_mortem_interval_interval)} "
                    f"[{format_time(self.post_mortem_interval_interval - self.confidence_interval_interval)} - {format_time(self.post_mortem_interval_interval + self.confidence_interval_interval)}]")
@@ -178,11 +207,14 @@ class PostMortemIntervalResults:
 
     def __str__(self):
         # Display results as string
-        to_str = f"**{self.name}** "
+        to_str = f"**{self.name}**"
         
         if self.error_message:
             return to_str + f": {self.error_message}"
         
+        min_str = format_time(self.min) if self.min is not None and not np.isnan(self.min) else None
+        max_str = format_time(self.max) if self.max is not None and not np.isnan(self.max) else None
+
         # Check if both values are defined and not NaN
         if self.min is not None and not np.isnan(self.min) and self.max is not None and not np.isnan(self.max):
             return to_str + f": Estimated PMI between {format_time(self.min)} and {format_time(self.max)}"
@@ -215,18 +247,17 @@ class OutputResults:
         
 
     def __str__(self):
-        """
-        Display results as string
-        """
-        test = "\n\n".join([
-            str(self.henssge_rectal),
-            str(self.henssge_brain),
-            str(self.baccino),
-            str(self.idiomuscular_reaction),
-            str(self.rigor),
-            str(self.lividity),
-            str(self.lividity_disappearance),
-            str(self.lividity_mobility)
-        ])
+        """ Provides a basic relative time summary for debugging/internal use. """
+        parts = []
+        if self.henssge_rectal: parts.append(str(self.henssge_rectal))
+        if self.henssge_brain: parts.append(str(self.henssge_brain))
+        if self.baccino: parts.append(str(self.baccino))
+        if self.idiomuscular_reaction: parts.append(str(self.idiomuscular_reaction))
+        if self.rigor: parts.append(str(self.rigor))
+        if self.lividity: parts.append(str(self.lividity))
+        if self.lividity_disappearance: parts.append(str(self.lividity_disappearance))
+        if self.lividity_mobility: parts.append(str(self.lividity_mobility))
         
-        return test
+        valid_parts = [p for p in parts if p and ":" in p and "Not Specified" not in p.split(":", 1)[-1] and "failed" not in p]
+
+        return "\n\n".join(valid_parts) if valid_parts else "No results calculated or specified."

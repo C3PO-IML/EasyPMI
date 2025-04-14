@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional
 from core.constants import IdiomuscularReactionType, RigorType, LividityType, LividityDisappearanceType, \
     LividityMobilityType, BodyCondition, EnvironmentType, SupportingBase
 
@@ -19,7 +21,8 @@ class InputParameters:
             lividity: LividityType = None,
             lividity_disappearance: LividityDisappearanceType = None,
             lividity_mobility: LividityMobilityType = None,
-            user_corrective_factor: float = None
+            user_corrective_factor: float = None,
+            measurement_datetime: Optional[datetime] = None
     ):
         """
         Object encapsulating all inputs parameters needed by the core computation
@@ -47,6 +50,7 @@ class InputParameters:
         lividity_disappearance : LividityDisappearanceType
         lividity_mobility : LividityMobilityType
         user_corrective_factor : float
+        measurement_datetime : Optional[datetime] = Optional date and time when measurements were taken.
         """
         self.tympanic_temperature = tympanic_temperature
         self.rectal_temperature = rectal_temperature
@@ -61,9 +65,13 @@ class InputParameters:
         self.lividity_disappearance = lividity_disappearance
         self.lividity_mobility = lividity_mobility
         self.user_corrective_factor = user_corrective_factor
+        self.measurement_datetime = measurement_datetime
 
     def __str__(self):
         members = []
+        if self.measurement_datetime:
+            from .datetime_utils import format_datetime
+            members.append(f"measurement_datetime = {format_datetime(self.measurement_datetime)}")
         if self.tympanic_temperature:
             members.append(f"tympanic_temperature = {self.tympanic_temperature}°C")
         if self.rectal_temperature:

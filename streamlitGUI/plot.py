@@ -1,5 +1,6 @@
 import math
 from typing import Optional
+from datetime import datetime
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -10,7 +11,8 @@ from core.computations import henssge_rectal, henssge_brain
 from core.constants import STANDARD_BODY_TEMPERATURE
 from core.input_parameters import InputParameters
 from core.output_results import HenssgeRectalResults, HenssgeBrainResults, OutputResults, PostMortemIntervalResults
-from core.tools import format_time
+from core.tools import format_time as format_relative_time
+from core.datetime_utils import format_datetime, subtract_hours_from_datetime
 
 
 def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: HenssgeRectalResults) -> Optional[Figure]:
@@ -36,15 +38,16 @@ def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: H
     """
     
     # Check result
-    if result.error_message:
+    if result.error_message or result.post_mortem_interval is None:
         return None
+    measurement_dt = input_parameters.measurement_datetime
     
     # Prepare figure
     fig = Figure(figsize=(6, 4), dpi=150)
     ax = fig.add_subplot(111)
 
     # Build temperatures through time
-    max_time = 50
+    max_time = max(50, result.pmi_max() * 1.2 if result.pmi_max() else 50)
     time = np.linspace(0, max_time, 100)
     temperatures = [input_parameters.ambient_temperature 
                     + (STANDARD_BODY_TEMPERATURE - input_parameters.ambient_temperature) 
@@ -53,14 +56,31 @@ def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: H
 
     ax.plot(time, temperatures, label="Thermal evolution")
     ax.axhline(y=input_parameters.rectal_temperature, color='r', linestyle='--', label=f"Current temperature: {input_parameters.rectal_temperature} °C")
-    ax.scatter(result.post_mortem_interval, input_parameters.rectal_temperature, color='b', label=f"Estimated time: {format_time(result.post_mortem_interval)}")
+    
+    # --- Format labels based on measurement_dt ---
+    pmi_estimate_hrs = result.post_mortem_interval
+    pmi_min_hrs = result.pmi_min()
+    pmi_max_hrs = result.pmi_max()
 
-    ax.axvspan(result.pmi_min(), result.pmi_max(), color='green', alpha=0.3, label=f"CI: {format_time(result.pmi_min())} - {format_time(result.pmi_max())}")
+    if measurement_dt:
+        time_of_death_estimate = subtract_hours_from_datetime(measurement_dt, pmi_estimate_hrs)
+        time_of_death_start = subtract_hours_from_datetime(measurement_dt, pmi_min_hrs) # Later time of death
+        time_of_death_end = subtract_hours_from_datetime(measurement_dt, pmi_max_hrs)   # Earlier time of death
+
+        est_label = f"Est. Death: {format_datetime(time_of_death_estimate)}"
+        ci_label = f"CI: {format_datetime(time_of_death_end)} - {format_datetime(time_of_death_start)}"
+        ax.scatter(pmi_estimate_hrs, input_parameters.rectal_temperature, color='b', label=est_label)
+        ax.axvspan(pmi_min_hrs, pmi_max_hrs, color='green', alpha=0.3, label=ci_label)
+    else:
+        est_label = f"Est. Time: {format_relative_time(pmi_estimate_hrs)}"
+        ci_label = f"CI: {format_relative_time(pmi_min_hrs)} - {format_relative_time(pmi_max_hrs)}"
+        ax.scatter(pmi_estimate_hrs, input_parameters.rectal_temperature, color='b', label=est_label)
+        ax.axvspan(pmi_min_hrs, pmi_max_hrs, color='green', alpha=0.3, label=ci_label)
+    # --- End Formatting ---
 
     ax.set_xlabel("Time (hours)")
     ax.set_ylabel("Rectal temperature (°C)")
     ax.set_title("Evolution of rectal temperature", fontsize=12)
-
     ax.legend(loc='upper right', bbox_to_anchor=(1, 1), prop={'size': 8}, fancybox=True, shadow=True)
     ax.grid(True)
 
@@ -91,15 +111,16 @@ def plot_temperature_henssge_brain(input_parameters: InputParameters, result: He
     """
 
     # Check result
-    if result.error_message:
+    if result.error_message or result.post_mortem_interval is None:
         return None
+    measurement_dt = input_parameters.measurement_datetime
 
     # Prepare figure
     fig = Figure(figsize=(6, 4), dpi=150)
     ax = fig.add_subplot(111)
 
     # Build temperatures through time
-    max_time = 50
+    max_time = max(50, result.pmi_max() * 1.2 if result.pmi_max() else 50)
     time = np.linspace(0, max_time, 100)
     temperatures = [input_parameters.ambient_temperature
                     + (STANDARD_BODY_TEMPERATURE - input_parameters.ambient_temperature)
@@ -108,14 +129,31 @@ def plot_temperature_henssge_brain(input_parameters: InputParameters, result: He
 
     ax.plot(time, temperatures, label="Thermal evolution")
     ax.axhline(y=input_parameters.tympanic_temperature, color='r', linestyle='--', label=f"Current temperature : {input_parameters.tympanic_temperature} °C")
-    ax.scatter(result.post_mortem_interval, input_parameters.tympanic_temperature, color='b', label=f"Estimated time : {format_time(result.post_mortem_interval)}")
+    
+    # --- Format labels based on measurement_dt ---
+    pmi_estimate_hrs = result.post_mortem_interval
+    pmi_min_hrs = result.pmi_min()
+    pmi_max_hrs = result.pmi_max()
 
-    ax.axvspan(result.pmi_min(), result.pmi_max(), color='green', alpha=0.3, label=f"CI : {format_time(result.pmi_min())} - {format_time(result.pmi_max())}")
+    if measurement_dt:
+        time_of_death_estimate = subtract_hours_from_datetime(measurement_dt, pmi_estimate_hrs)
+        time_of_death_start = subtract_hours_from_datetime(measurement_dt, pmi_min_hrs) # Later time of death
+        time_of_death_end = subtract_hours_from_datetime(measurement_dt, pmi_max_hrs)   # Earlier time of death
+
+        est_label = f"Est. Death: {format_datetime(time_of_death_estimate)}"
+        ci_label = f"CI: {format_datetime(time_of_death_end)} - {format_datetime(time_of_death_start)}"
+        ax.scatter(pmi_estimate_hrs, input_parameters.tympanic_temperature, color='b', label=est_label)
+        ax.axvspan(pmi_min_hrs, pmi_max_hrs, color='green', alpha=0.3, label=ci_label)
+    else:
+        est_label = f"Est. Time: {format_relative_time(pmi_estimate_hrs)}"
+        ci_label = f"CI: {format_relative_time(pmi_min_hrs)} - {format_relative_time(pmi_max_hrs)}"
+        ax.scatter(pmi_estimate_hrs, input_parameters.tympanic_temperature, color='b', label=est_label)
+        ax.axvspan(pmi_min_hrs, pmi_max_hrs, color='green', alpha=0.3, label=ci_label)
+    # --- End Formatting ---
 
     ax.set_xlabel("Time (hours)")
     ax.set_ylabel("Tympanic temperature (°C)")
     ax.set_title("Evolution of tympanic temperature", fontsize=12)
-
     ax.legend(loc='upper right', bbox_to_anchor=(1, 1), prop={'size': 8}, fancybox=True, shadow=True)
     ax.grid(True)
 
@@ -131,50 +169,84 @@ def _inverse_hybrid_scale(x, threshold=20, compression_factor=8):
     """Inverse of the hybrid scale transformation."""
     return np.where(x <= threshold, x, threshold + (x - threshold) * compression_factor)
 
-def _add_mustache_box(ax: plt.Axes, vertical_index: int, left: float, right: float, color: str, center: Optional[float] = None) -> None:
+def _add_mustache_box(ax: plt.Axes, vertical_index: int, left_hrs: float, right_hrs: float, color: str, center_hrs: Optional[float] = None, measurement_dt: Optional[datetime] = None) -> None:
     """
-    Draws a mustache box with specific text positioning and fixed color.
-    Interval values BELOW line, Central estimate value ABOVE line.
+    Draws a mustache box, formatting labels with absolute time if measurement_dt is provided.
     """
     vertical_offset = 0.4 
-    plot_center = center if center is not None else (left + right) / 2.0
+    plot_center_hrs = center_hrs if center_hrs is not None else (left_hrs + right_hrs) / 2.0
+    
+    # Calculate absolute times if possible
+    center_dt = subtract_hours_from_datetime(measurement_dt, center_hrs) if measurement_dt and center_hrs is not None else None
+    start_dt = subtract_hours_from_datetime(measurement_dt, left_hrs) if measurement_dt else None # Later ToD
+    end_dt = subtract_hours_from_datetime(measurement_dt, right_hrs) if measurement_dt else None  # Earlier ToD
+
+    # Format labels
+    center_label = format_datetime(center_dt) if center_dt else format_relative_time(center_hrs) if center_hrs is not None else ""
+    left_label = format_datetime(start_dt) if start_dt else format_relative_time(left_hrs)
+    right_label = format_datetime(end_dt) if end_dt else format_relative_time(right_hrs)
+
     # Text Positioning
-    if center is not None: # Text ABOVE
-        ax.text(center, vertical_index + vertical_offset, f"{format_time(center)}", ha='center', va='bottom', fontsize=11, color=color)
+    if center_hrs is not None: # Text ABOVE
+        ax.text(center_hrs, vertical_index + vertical_offset, center_label, ha='center', va='bottom', fontsize=9, color=color, rotation=0) # Smaller font
     # Text BELOW
-    ax.text(left, vertical_index - vertical_offset, f"{format_time(left)}", ha='center', va='top', fontsize=11, color=color)
-    ax.text(right, vertical_index - vertical_offset, f"{format_time(right)}", ha='center', va='top', fontsize=11, color=color)
-    # Error Bar
-    ax.errorbar([plot_center], [vertical_index], xerr=[[plot_center - left], [right - plot_center]], 
+    ax.text(left_hrs, vertical_index - vertical_offset, left_label, ha='center', va='top', fontsize=9, color=color, rotation=0) # Smaller font
+    ax.text(right_hrs, vertical_index - vertical_offset, right_label, ha='center', va='top', fontsize=9, color=color, rotation=0) # Smaller font
+
+    # Error Bar (remains plotted in hours)
+    ax.errorbar([plot_center_hrs], [vertical_index], xerr=[[plot_center_hrs - left_hrs], [right_hrs - plot_center_hrs]],
                 fmt='o', markersize=4, color=color, capsize=4, lw=1.5)
 
-def _add_zone_box(ax: plt.Axes, vertical_index: int, position: float, valid_side: str, color: str) -> None:
-    """Draws a shaded zone and line for one-sided intervals with a fixed color."""
+def _add_zone_box(ax: plt.Axes, vertical_index: int, position_hrs: float, valid_side: str, color: str, measurement_dt: Optional[datetime] = None) -> None:
+    """Draws a shaded zone, formatting labels with absolute time if measurement_dt is provided."""
     x_min_lim, x_max_lim = ax.get_xlim()
-    left_shade, right_shade = x_min_lim, x_max_lim
+    left_shade_hrs, right_shade_hrs = x_min_lim, x_max_lim
     text, text_horizontal_align = "", ""
-    if valid_side == 'upper': text, text_horizontal_align, right_shade = f"PMI > {format_time(position)}", 'left', position
-    elif valid_side == 'lower': text, text_horizontal_align, left_shade = f"PMI < {format_time(position)}", 'right', position
-    else: return 
-    ax.axvspan(xmin=left_shade, xmax=right_shade, color="grey", alpha=0.15, zorder=-1)
-    ax.axvline(x=position, color=color, linestyle='--', lw=1.5)
-    ax.text(position, vertical_index, text, ha=text_horizontal_align, va='center', fontsize=10, color=color,
-            bbox=dict(facecolor='white', alpha=0.7, pad=0.1, boxstyle='round,pad=0.2'))
 
-def _plot_post_mortem_interval_result(ax: plt.Axes, vertical_index: int, result: PostMortemIntervalResults, color: str) -> None:
-    """Determines plot type (mustache/zone) and passes the fixed color along."""
-    if result is None or result.min is None or result.max is None: return
-    if np.isclose(result.min, 0.0) and result.max != float('inf'):
-        _add_zone_box(ax, vertical_index, position=result.max, valid_side='lower', color=color)
-    elif result.max == float('inf') and not np.isclose(result.min, 0.0):
-         _add_zone_box(ax, vertical_index, position=result.min, valid_side='upper', color=color)
-    elif not np.isclose(result.min, 0.0) and result.max != float('inf'):
-         _add_mustache_box(ax, vertical_index, left=result.min, right=result.max, color=color, center=None) 
+    position_dt = subtract_hours_from_datetime(measurement_dt, position_hrs) if measurement_dt else None
+    pos_label = format_datetime(position_dt) if position_dt else format_relative_time(position_hrs)
+
+    if valid_side == 'upper': 
+        text = f"PMI > {pos_label}"
+        text_horizontal_align = 'left'
+        right_shade_hrs = position_hrs
+    elif valid_side == 'lower': 
+        text = f"PMI < {pos_label}"
+        text_horizontal_align = 'right'
+        left_shade_hrs = position_hrs
+    else:
+        return
+
+    ax.axvspan(xmin=left_shade_hrs, xmax=right_shade_hrs, color="grey", alpha=0.15, zorder=-1)
+    ax.axvline(x=position_hrs, color=color, linestyle='--', lw=1.5)
+    ax.text(position_hrs, vertical_index, text, ha=text_horizontal_align, va='center', fontsize=9, color=color, # Smaller font
+        bbox=dict(facecolor='white', alpha=0.7, pad=0.1, boxstyle='round,pad=0.2'))
+
+def _plot_post_mortem_interval_result(ax: plt.Axes, vertical_index: int, result: PostMortemIntervalResults, color: str, measurement_dt: Optional[datetime] = None) -> None:
+    """ Determines plot type (mustache/zone) for signs and passes measurement_dt along. """
+    if result is None or result.min is None or result.max is None or math.isnan(result.min) or math.isnan(result.max): return
+
+    min_hrs = result.min
+    max_hrs = result.max
+
+    # Check for NaN/inf before comparison
+    is_min_zero = not math.isnan(min_hrs) and np.isclose(min_hrs, 0.0)
+    is_max_inf = not math.isnan(max_hrs) and max_hrs == float('inf')
+    is_min_valid_nonzero = not math.isnan(min_hrs) and not np.isclose(min_hrs, 0.0)
+    is_max_valid_finite = not math.isnan(max_hrs) and max_hrs != float('inf')
+
+
+    if is_min_zero and is_max_valid_finite:
+        _add_zone_box(ax, vertical_index, position_hrs=max_hrs, valid_side='lower', color=color, measurement_dt=measurement_dt)
+    elif is_max_inf and is_min_valid_nonzero:
+         _add_zone_box(ax, vertical_index, position_hrs=min_hrs, valid_side='upper', color=color, measurement_dt=measurement_dt)
+    elif is_min_valid_nonzero and is_max_valid_finite:
+         _add_mustache_box(ax, vertical_index, left_hrs=min_hrs, right_hrs=max_hrs, color=color, center_hrs=None, measurement_dt=measurement_dt)
 
 
 # --- Main Comparative Plot Function ---
 
-def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
+def plot_comparative_pmi_results(input_parameters: InputParameters, result: OutputResults) -> Optional[Figure]:
     """
     Plots a comparative graph with FIXED Y-axis, fixed size, and fixed colors.
 
@@ -189,6 +261,8 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
         A Matplotlib Figure object with the comparative plot. May be empty visually
         if no methods were calculated, but axis labels will be present.
     """
+    measurement_dt = input_parameters.measurement_datetime
+
     # --- Define Fixed Order and Colors for ALL Methods ---
     # Order determines top-to-bottom display after y-axis inversion
     ALL_METHODS_ORDERED = [
@@ -215,7 +289,7 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
         'Livor Mortis (Onset)': mcolors.TABLEAU_COLORS['tab:pink'], 
         'Livor Mortis (Mobility)': mcolors.TABLEAU_COLORS['tab:gray'],
         'Livor Mortis (Disappearance)': mcolors.TABLEAU_COLORS['tab:olive'],
-        'default': mcolors.TABLEAU_COLORS['tab:cyan'] # Fallback color
+        'default': mcolors.TABLEAU_COLORS['tab:cyan'] 
     }
 
     # --- Figure Setup with FIXED Size ---
@@ -296,22 +370,29 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
 
             # --- If valid, plot it at the fixed y_index ---
             if is_valid_for_plotting:
-                center_value = None # Determine center
-                if item_type in ['henssge_rectal', 'henssge_brain']: center_value = res_obj.post_mortem_interval
-                elif item_type == 'baccino_global': center_value = res_obj.post_mortem_interval_global
-                elif item_type == 'baccino_interval': center_value = res_obj.post_mortem_interval_interval
-                
-                plot_min, plot_max = None, None # Determine bounds
-                if item_type in ['henssge_rectal', 'henssge_brain']: plot_min, plot_max = res_obj.pmi_min(), res_obj.pmi_max()
-                elif item_type == 'baccino_global': plot_min, plot_max = res_obj.post_mortem_interval_global - res_obj.confidence_interval_global, res_obj.post_mortem_interval_global + res_obj.confidence_interval_global
-                elif item_type == 'baccino_interval': plot_min, plot_max = res_obj.post_mortem_interval_interval - res_obj.confidence_interval_interval, res_obj.post_mortem_interval_interval + res_obj.confidence_interval_interval
-                
-                # Plot using appropriate function
+                center_hrs, plot_min_hrs, plot_max_hrs = None, None, None
+                # Determine hours for plotting
+                if item_type in ['henssge_rectal', 'henssge_brain']:
+                    center_hrs = res_obj.post_mortem_interval
+                    plot_min_hrs, plot_max_hrs = res_obj.pmi_min(), res_obj.pmi_max()
+                elif item_type == 'baccino_global':
+                    center_hrs = res_obj.post_mortem_interval_global
+                    if res_obj.confidence_interval_global is not None:
+                        plot_min_hrs = center_hrs - res_obj.confidence_interval_global
+                        plot_max_hrs = center_hrs + res_obj.confidence_interval_global
+                elif item_type == 'baccino_interval':
+                    center_hrs = res_obj.post_mortem_interval_interval
+                    if res_obj.confidence_interval_interval is not None:
+                         plot_min_hrs = center_hrs - res_obj.confidence_interval_interval
+                         plot_max_hrs = center_hrs + res_obj.confidence_interval_interval
+                elif item_type == 'sign':
+                    # Signs are handled by _plot_post_mortem_interval_result
+                    pass
+                # Plot using appropriate function, passing measurement_dt
                 if item_type == 'sign':
-                    _plot_post_mortem_interval_result(ax, y_index, res_obj, color=item_color)
-                elif plot_min is not None and plot_max is not None:
-                    _add_mustache_box(ax, y_index, left=plot_min, right=plot_max, color=item_color, center=center_value)
-                    
+                    _plot_post_mortem_interval_result(ax, y_index, res_obj, color=item_color, measurement_dt=measurement_dt)
+                elif plot_min_hrs is not None and plot_max_hrs is not None:
+                    _add_mustache_box(ax, y_index, left_hrs=plot_min_hrs, right_hrs=plot_max_hrs, color=item_color, center_hrs=center_hrs, measurement_dt=measurement_dt)
         except Exception as e: # Catch any unexpected error during processing/plotting
              print(f"Error processing or plotting item '{label}': {e}")
              ax.text(ax.get_xlim()[0] + 1, y_index, "Error", color='red', fontsize=8)
@@ -345,6 +426,6 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
     ax.invert_yaxis()
     
     # Restore Manual Margin Adjustment for Fixed Size
-    fig.subplots_adjust(left=0.18, bottom=0.15, top=0.9, right=0.92) 
+    fig.subplots_adjust(left=0.22, bottom=0.15, top=0.9, right=0.95) 
 
     return fig
