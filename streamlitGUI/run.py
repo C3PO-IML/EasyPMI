@@ -1,12 +1,14 @@
 import streamlit as st
+from datetime import datetime, date, time
 from core import compute
 from core.constants import IdiomuscularReactionType, SupportingBase, EnvironmentType, BodyCondition, RigorType, LividityType, LividityMobilityType, LividityDisappearanceType
 from core.input_parameters import InputParameters
+from core import time_converter
 from streamlitGUI import plot
 from streamlitGUI.help import build_help_section
 from streamlitGUI.pdf_generation import generate_pdf
 from streamlitGUI.tools import convert_decimal_separator
-
+from streamlitGUI.output_formatter import format_results_output
 
 def _build_input_parameters() -> InputParameters:
     """
@@ -59,6 +61,12 @@ def _init_state() -> None:
     Returns:
         None
     """
+    if 'use_reference_datetime' not in st.session_state:
+        st.session_state.use_reference_datetime = False
+    if 'reference_date' not in st.session_state:
+        st.session_state.reference_date = date.today()
+    if 'reference_time' not in st.session_state:
+        st.session_state.reference_time = time(12, 00)
     if 'input_t_tympanic' not in st.session_state:
         st.session_state.input_t_tympanic = ""
     if 'input_t_rectal' not in st.session_state:
@@ -89,6 +97,8 @@ def _init_state() -> None:
         st.session_state.lividity_mobility = LividityMobilityType.NOT_SPECIFIED
     if 'results' not in st.session_state:
         st.session_state.results = ""
+    if 'results_object' not in st.session_state:
+         st.session_state.results_object = None
     if 'fig_henssge_rectal' not in st.session_state:
         st.session_state.fig_henssge_rectal = None
     if 'fig_henssge_brain' not in st.session_state:
@@ -153,17 +163,30 @@ def _on_calculate():
     # Close help section if open
     st.session_state.help_open = False
     
+    # Set Reference Datetime if toggled  
+    ref_dt = None
+    if st.session_state.use_reference_datetime:
+        try:
+            # Combine date and time from session state into a datetime object
+            ref_dt = datetime.combine(st.session_state.reference_date, st.session_state.reference_time)
+        except Exception as e:
+            st.error(f"Error combining date and time: {e}")
+
+    # Set the reference in the time_converter module
+    time_converter.set_reference_datetime(ref_dt)
+
     # Inputs
     input_parameters = _build_input_parameters()
 
     # Results
-    results = compute.run(input_parameters)
-    st.session_state.results = str(results)
+    results_obj = compute.run(input_parameters)
+    st.session_state.results_object = results_obj
+    st.session_state.results = format_results_output(results_obj)
 
     # Plots
-    st.session_state.fig_henssge_rectal = plot.plot_temperature_henssge_rectal(input_parameters, results.henssge_rectal) 
-    st.session_state.fig_henssge_brain = plot.plot_temperature_henssge_brain(input_parameters, results.henssge_brain)
-    st.session_state.fig_comparison = plot.plot_comparative_pmi_results(results)
+    st.session_state.fig_henssge_rectal = plot.plot_temperature_henssge_rectal(input_parameters, results_obj.henssge_rectal) 
+    st.session_state.fig_henssge_brain = plot.plot_temperature_henssge_brain(input_parameters, results_obj.henssge_brain)
+    st.session_state.fig_comparison = plot.plot_comparative_pmi_results(results_obj)
 
 
 if __name__ == '__main__':
@@ -179,7 +202,23 @@ if __name__ == '__main__':
     _init_state()
 
     # User inputs
-    st.sidebar.header("Parameters")
+    st.sidebar.subheader("Reference Time (Optional)")
+    use_ref_toggle = st.sidebar.toggle(
+        "Use Measurement Date/Time",
+        key="use_reference_datetime",
+        help="Activate to specify when measurements were taken, to get absolute time of death estimates."
+    )
+    if st.session_state.use_reference_datetime:
+        ref_date = st.sidebar.date_input(
+            "Measurement Date:",
+            key="reference_date"
+        )
+        ref_time = st.sidebar.time_input(
+            "Measurement Time:",
+            key="reference_time"
+        )
+
+    st.sidebar.subheader("Parameters")
 
     # Text inputs with session_state keys
     st.sidebar.text_input(
@@ -249,7 +288,7 @@ if __name__ == '__main__':
         )
 
     # Thanatological signs
-    st.sidebar.header("Thanatological Signs")
+    st.sidebar.subheader("Thanatological Signs")
     idiomuscular_reaction_selectbox = st.sidebar.selectbox(
         "Idiomuscular Reaction :",
         options=IdiomuscularReactionType,
