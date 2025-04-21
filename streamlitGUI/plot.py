@@ -60,12 +60,11 @@ def plot_temperature_henssge_rectal(input_parameters: InputParameters, result: H
 
     scatter_label = time_converter.format_plot_scatter_label(pmi_center)
     ci_label = time_converter.format_plot_ci_label(pmi_min, pmi_max)
-    xlabel = time_converter.format_plot_xlabel()
 
     ax.scatter(pmi_center, input_parameters.rectal_temperature, color='b', label=scatter_label)
     ax.axvspan(pmi_min, pmi_max, color='green', alpha=0.3, label=ci_label)
 
-    ax.set_xlabel(xlabel)
+    ax.set_xlabel("Post-Mortem Interval (hours)")
     ax.set_ylabel("Rectal temperature (°C)")
     ax.set_title("Evolution of rectal temperature", fontsize=12)
 
@@ -123,12 +122,11 @@ def plot_temperature_henssge_brain(input_parameters: InputParameters, result: He
 
     scatter_label = time_converter.format_plot_scatter_label(pmi_center)
     ci_label = time_converter.format_plot_ci_label(pmi_min, pmi_max)
-    xlabel = time_converter.format_plot_xlabel()
 
     ax.scatter(pmi_center, input_parameters.tympanic_temperature, color='b', label=scatter_label)
     ax.axvspan(pmi_min, pmi_max, color='green', alpha=0.3, label=ci_label)
     
-    ax.set_xlabel(xlabel)
+    ax.set_xlabel("Post-Mortem Interval (hours)")
     ax.set_ylabel("Tympanic temperature (°C)")
     ax.set_title("Evolution of tympanic temperature", fontsize=12)
 
