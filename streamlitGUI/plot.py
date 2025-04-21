@@ -156,15 +156,20 @@ def _add_mustache_box(ax: plt.Axes, vertical_index: int, left: float, right: flo
     plot_center_hour = center if center is not None else (left + right) / 2.0
     center_label, left_label, right_label = time_converter.format_plot_mustache_labels(left, right, center)
     
+    # Determine if the x-axis is inverted
+    is_inverted = time_converter.get_reference_datetime() is not None
+    
     # Text Positioning
-    if center_label: # text ABOVE
+    # For mean value, text is below the line
+    if center_label: 
         ax.text(center if center is not None else plot_center_hour,
                 vertical_index + vertical_offset,
                 center_label, ha='center', va='bottom', fontsize=11, color=color)   
-    if left_label != "N/A": # text BELOW
-         ax.text(left, vertical_index - vertical_offset, left_label, ha='center', va='top', fontsize=11, color=color)
-    if right_label != "N/A": # text BELOW
-         ax.text(right, vertical_index - vertical_offset, right_label, ha='center', va='top', fontsize=11, color=color)
+    # For Confience Interval, text is above the line
+    if left_label != "N/A": 
+            ax.text(left, vertical_index - vertical_offset, left_label, ha='center', va='top', fontsize=11, color=color)
+    if right_label != "N/A": 
+            ax.text(right, vertical_index - vertical_offset, right_label, ha='center', va='top', fontsize=11, color=color)
     # Error Bar
     ax.errorbar([plot_center_hour], [vertical_index], xerr=[[plot_center_hour - left], [right - plot_center_hour]],
                 fmt='o', markersize=4, color=color, capsize=4, lw=1.5)
@@ -243,7 +248,10 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
     fig = Figure(figsize=(16, 6), dpi=200) 
     ax = fig.add_subplot(111)
 
-    # --- Determine X-axis Limits ---
+    # --- Determine X-axis ---
+    # Determine wheter X-axis should be reversed
+    invert_x_axis = time_converter.get_reference_datetime() is not None
+    # Determine X-axis limits
     relevant_x_values = []
     # Iterate through result attributes directly to find max X extent needed
     try: # Wrap checks in try-except for safety
@@ -339,6 +347,14 @@ def plot_comparative_pmi_results(result: OutputResults) -> Optional[Figure]:
         # If not is_valid_for_plotting, the loop continues, leaving the row blank
 
     # --- Final Touches ---
+    # Set X-axis adaptable Ticks Labels
+    tick_labels = time_converter.generate_plot_x_tick_labels(ticks)
+    ax.set_xticklabels(tick_labels, ha='center', fontsize=10)
+    
+    # Conditionally invert X-axis 
+    if invert_x_axis:
+        ax.invert_xaxis() # Invert X-axis if needed
+           
     # Set fixed Y ticks and labels
     ax.set_yticks(range(num_total_methods))
     ax.set_yticklabels(ALL_METHODS_ORDERED)

@@ -156,19 +156,72 @@ def format_plot_ci_label(pmi_min_hours: Optional[float], pmi_max_hours: Optional
     else:
         # Remember: Min PMI hours -> Latest possible death time
         #           Max PMI hours -> Earliest possible death time
+        hour_format = "%Hh%M"
         dt_latest = calculate_absolute_dt(pmi_min_hours)
         dt_earliest = calculate_absolute_dt(pmi_max_hours)
-        fmt_earliest = format_absolute_datetime(dt_earliest)
-        fmt_latest = format_absolute_datetime(dt_latest)
+        fmt_earliest = dt_earliest.strftime(hour_format) if dt_earliest else "N/A"
+        fmt_latest = dt_latest.strftime(hour_format) if dt_latest else "N/A"
         return f"{fmt_earliest} - {fmt_latest}"
 
 def format_plot_xlabel() -> str:
     """Returns the appropriate X-axis label based on reference time."""
     if _reference_datetime is None:
-        return "Time Post-Mortem (hours)"
+        return "Estimated Post-Mortem Interval (hours)"
     else:
         return "Estimated Time of Death (position relative to measurement time)"
 
+def generate_plot_x_tick_labels(tick_hours: list[float]) -> list[str]:
+    """
+    Generates labels for X-axis ticks on plots.
+    Returns relative hours if no reference datetime is set.
+    Returns absolute Date+Hour if reference is set, showing the date
+    only on the first tick and when the date changes.
+
+    Args:
+        tick_hours: A list of tick positions in hours PMI.
+
+    Returns:
+        A list of strings to be used as tick labels.
+    """
+    if not tick_hours:
+        return []
+
+    if _reference_datetime is None:
+        # Relative mode: Simply return hours in standard string format
+        return [format_relative_time(h) for h in tick_hours]
+    else:
+        # Absolute mode: returns absolute date and hours
+        output_labels = []
+        last_date_str = None # Save the last date displayed
+
+        for hour in tick_hours:
+            if hour < 0: # Do not attempt to calculate for negative ticks (e.g. xlim left=-1)
+                output_labels.append("")
+                continue
+
+            dt = calculate_absolute_dt(hour)
+            if dt is None:
+                output_labels.append("") # Leave blank if not calculable
+                continue
+
+            # Format date and time parts
+            current_date_str = dt.strftime("%d/%m/%Y")
+            hour_str = dt.strftime("%Hh%M") # Hour format only
+
+            # Decide what to display
+            if last_date_str is None or current_date_str != last_date_str:
+                # First time or date change: display Date + Time
+                # Use \n to separate on two lines if necessary
+                label = f"{hour_str}\n{current_date_str}"
+                last_date_str = current_date_str # Update last viewed date
+            else:
+                # Same date as previous: show time only
+                label = hour_str
+
+            output_labels.append(label)
+
+        return output_labels
+    
 def format_plot_mustache_labels(pmi_min: Optional[float], pmi_max: Optional[float], pmi_center: Optional[float]) -> Tuple[str, str, str]:
     """
     Formats labels specifically for the mustache box plot helper.
@@ -192,15 +245,15 @@ def format_plot_mustache_labels(pmi_min: Optional[float], pmi_max: Optional[floa
         dt_center = calculate_absolute_dt(pmi_center) if has_center else None
         dt_latest = calculate_absolute_dt(pmi_min) if has_min else None    # Min hours -> latest death
         dt_earliest = calculate_absolute_dt(pmi_max) if has_max else None # Max hours -> earliest death
+        hour_format = "%Hh%M"
 
         center_str = format_absolute_datetime(dt_center) if dt_center else ""
-        fmt_earliest = format_absolute_datetime(dt_earliest) if dt_earliest else ""
-        fmt_latest = format_absolute_datetime(dt_latest) if dt_latest else ""
+        fmt_earliest = dt_earliest.strftime(hour_format) if dt_earliest else ""
+        fmt_latest = dt_latest.strftime(hour_format) if dt_latest else ""
 
         center_label = f"{center_str}" if center_str else ""
-        # Les labels aux extrémités représentent la plage de dates de décès
-        left_label = fmt_earliest # Texte de gauche = date la plus ancienne
-        right_label = fmt_latest  # Texte de droite = date la plus récente
+        left_label = fmt_latest # Left text = earliest date
+        right_label = fmt_earliest  # Right text = most recent date
 
     return center_label, left_label, right_label
 
@@ -228,9 +281,9 @@ def format_plot_zone_label(pmi_limit: Optional[float], side: str) -> Tuple[str, 
         formatted_dt = format_absolute_datetime(dt_limit)
         if formatted_dt not in ["N/A", "Invalid Date"]:
             if side == 'upper': # PMI > limit => Death Before dt_limit
-                text_label, align = f"ToD Before {formatted_dt}", 'left'
+                text_label, align = f"ToD Before {formatted_dt}", 'right'
             elif side == 'lower': # PMI < limit => Death After dt_limit
-                text_label, align = f"ToD After {formatted_dt}", 'right'
+                text_label, align = f"ToD After {formatted_dt}", 'left'
 
     return text_label, align
 
