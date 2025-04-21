@@ -84,14 +84,21 @@ def format_results_output(results: OutputResults) -> str:
     ]
     for sign_res in sign_results:
         if sign_res:
+            section_lines = [f"**{sign_res.name}:**"]
             if sign_res.error_message:
-                # Use the name attribute from the object
-                output_lines.append(f"**{sign_res.name}:** {sign_res.error_message}")
+                section_lines.append(sign_res.error_message)
             elif sign_res.min is not None or sign_res.max is not None: 
-                line = time_converter.format_pmi_range_string(sign_res.min, sign_res.max, prefix=f"**{sign_res.name}:**")
-                output_lines.append(line)
+                pmi_string = time_converter.format_pmi_range_string(sign_res.min, sign_res.max, prefix=f"")
+                if time_converter.get_reference_datetime() is None and 'between' in pmi_string:
+                     parts = pmi_string.split('between ')
+                     if len(parts) == 2:
+                        interval_parts = parts[1].split(' and ')
+                        if len(interval_parts) == 2:
+                            pmi_string = f"[{interval_parts[0]} / {interval_parts[1]}]"
+                section_lines.append(f"{pmi_string.strip()}")
             else:
-                output_lines.append(f"**{sign_res.name}:** Not specified")
+                 section_lines.append("Not specified")
+            output_lines.append("\n".join(section_lines))
 
     # Join all formatted lines with double newlines
     return "\n\n".join(filter(None, output_lines)) 

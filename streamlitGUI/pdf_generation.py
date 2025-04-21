@@ -1,177 +1,255 @@
 import io
 import math
-
 from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.units import inch
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas as pdf_canvas
+from reportlab.platypus import Paragraph
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.colors import HexColor
+from reportlab.lib.enums import TA_LEFT
 
 import streamlit as st
+from core import time_converter
+
+# --- Custom Paragraph Styles ---
+styles = getSampleStyleSheet()
+
+# Input column style 
+style_input = ParagraphStyle(
+    name='InputStyle',
+    parent=styles['Normal'],
+    fontName='Helvetica',
+    fontSize=9,
+    leading=11,
+    alignment=TA_LEFT,
+)
+# Style specific for the Input Title 
+style_input_title = ParagraphStyle(
+    name='InputTitleStyle',
+    parent=style_input, # Inherit font, size etc.
+    fontName='Helvetica-Bold', # Make it Bold
+    # Underlining handled by <u> tag
+)
+
+
+# Results column - Normal text
+style_results_normal = ParagraphStyle(
+    name='ResultNormal',
+    parent=styles['BodyText'],
+    fontName='Times-Roman',
+    fontSize=11,
+    leading=13,
+    alignment=TA_LEFT,
+)
+
+# Results column - Section Title
+style_results_title = ParagraphStyle(
+    name='ResultTitle',
+    parent=style_results_normal,
+    fontName='Times-Bold',
+)
 
 
 def generate_pdf() -> bytes:
     """
-    Generates a PDF in memory and returns the bytes.
+    Generates a PDF report in memory.
+    Inputs on left, Results on right. Updated styling and no graph titles.
     """
     buffer = io.BytesIO()
-    width, height = letter
+    width_p, height_p = letter
     c = pdf_canvas.Canvas(buffer, pagesize=letter)
 
-    def draw_formatted_text(text, x, y, is_bold=False):
-        """Helper function to draw text with proper formatting"""
-        if is_bold:
-            c.setFont("Helvetica-Bold", 12)
-        else:
-            c.setFont("Helvetica", 12)
-        c.drawString(x, y, text.strip('*'))  # Remove any remaining * characters
+    margin = 0.5*inch
+    input_area_width = 2.5*inch
+    results_area_x = margin + input_area_width + 0.2*inch
+    results_area_width = width_p - results_area_x - margin
+    top_y = height_p - margin
 
-    # Page 1: Title and data
+    # --- Conditional Main Title ---
+    report_title = "Estimation of Post-Mortem Interval"
+    if st.session_state.get('use_reference_datetime', False):
+        report_title = "Estimation of Time of Death"
     c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, height - 50, "Post-Mortem Interval Calculation Results")
+    c.drawString(margin, top_y - 0.3*inch, report_title)
+    current_y = top_y - 0.7*inch
 
-    # Calculate text width and height for user inputs
-    c.setFont("Helvetica", 10)
-    user_inputs = [
-        f"Tympanic temperature : {st.session_state.input_t_tympanic or 'Not specified'} °C",
-        f"Rectal temperature : {st.session_state.input_t_rectal or 'Not specified'} °C",
-        f"Ambient temperature : {st.session_state.input_t_ambient or 'Not specified'} °C",
-        f"Body weight : {st.session_state.input_M or 'Not specified'} kg",
-        f"Corrective factor : {st.session_state.input_Cf or 'Not specified'}",
-        f"Body condition : {st.session_state.body_condition or 'Not specified'}",
-        f"Environment : {st.session_state.environment or 'Not specified'}",
-        f"Supporting base : {st.session_state.supporting_base or 'Not specified'}",
-        f"Idiomuscular reaction : {st.session_state.idiomuscular_reaction or 'Not specified'}",
-        f"Rigor : {st.session_state.rigor or 'Not specified'}",
-        f"Lividity : {st.session_state.lividity or 'Not specified'}",
-        f"Lividity disappearance : {st.session_state.lividity_disappearance or 'Not specified'}",
-        f"Lividity mobility : {st.session_state.lividity_mobility or 'Not specified'}"
-    ]
+    # --- Input Parameters Column (Left) ---
+    input_col_x = margin
+    input_col_y_start = current_y 
+    grey_background = HexColor("#F0F0F0")
 
-    rect_width = 200
-    line_height = 15
-    margin = 10
-    x_start = width - rect_width - margin
+    user_inputs_text = []
+    # ADD "User Input:" TITLE TO THE LIST
+    user_inputs_text.append("<u><b>User Input:</b></u>")
 
-    # Calculate required height for text
-    total_height = margin * 2
-    for text in user_inputs:
-        text_width = c.stringWidth(text, "Helvetica", 10)
-        lines_needed = max(1, math.ceil(text_width / (rect_width - 2 * margin)))
-        total_height += line_height * lines_needed
+    if st.session_state.get('use_reference_datetime', False):
+        ref_date_str = st.session_state.reference_date.strftime("%d/%m/%Y")
+        ref_time_str = st.session_state.reference_time.strftime("%Hh%M")
+        user_inputs_text.append(f"<b>Reference Time:</b> {ref_date_str} - {ref_time_str}")
+    else:
+        user_inputs_text.append("<b>Reference Time:</b> Not Used")
+    user_inputs_text.extend([
+        f"<b>Tympanic temp.:</b> {st.session_state.input_t_tympanic or 'N/A'} °C",
+        f"<b>Rectal temp.:</b> {st.session_state.input_t_rectal or 'N/A'} °C",
+        f"<b>Ambient temp.:</b> {st.session_state.input_t_ambient or 'N/A'} °C",
+        f"<b>Body weight:</b> {st.session_state.input_M or 'N/A'} kg",
+    ])
+    cf_mode = st.session_state.get('correction_mode', 'Predefined')
+    if cf_mode == "Manual input":
+         user_inputs_text.append(f"<b>Corrective factor:</b> {st.session_state.input_Cf or 'N/A'} (Manual)")
+    else:
+        user_inputs_text.append(f"<b>Corrective factor mode:</b> Predefined")
+        user_inputs_text.append(f"<b>Body condition:</b> {st.session_state.body_condition}")
+        user_inputs_text.append(f"<b>Environment:</b> {st.session_state.environment}")
+        user_inputs_text.append(f"<b>Supporting base:</b> {st.session_state.supporting_base}")
+    user_inputs_text.extend([
+        f"<b>Idiomuscular reaction:</b> {st.session_state.idiomuscular_reaction}",
+        f"<b>Rigor:</b> {st.session_state.rigor}",
+        f"<b>Lividity:</b> {st.session_state.lividity}",
+        f"<b>Lividity disappearance:</b> {st.session_state.lividity_disappearance}",
+        f"<b>Lividity mobility:</b> {st.session_state.lividity_mobility}"
+    ])
 
-    # Draw blue rectangle with calculated height
-    rect_height = total_height
-    c.setStrokeColorRGB(0, 0, 1)  # Blue color
-    c.setFillColorRGB(0.9, 0.9, 1)  # Light blue fill color
-    c.rect(x_start, height - 50 - rect_height, rect_width, rect_height, stroke=1, fill=1)
+    # --- Calculate height and draw inputs ---
+    input_y_pos = input_col_y_start
+    total_input_height_calculated = 0
+    input_paragraphs = []
+    first_input = True
 
-    # Reset text color to black
+    for i, text in enumerate(user_inputs_text):
+        # Use specific style for the first line (title)
+        is_input_title = (i == 0)
+        style = style_input_title if is_input_title else style_input
+        # Text already contains 
+        p = Paragraph(text.replace('\n', '<br/>'), style)
+        input_paragraphs.append(p)
+        w, h = p.wrapOn(c, input_area_width, height_p)
+        spacing = 8 if is_input_title else 2 
+        total_input_height_calculated += h + spacing
+
+    # Draw grey background
+    bg_padding = 5
+    bg_y = input_col_y_start + bg_padding
+    bg_height = total_input_height_calculated + bg_padding
+    c.setFillColor(grey_background)
+    c.rect(input_col_x - bg_padding, bg_y - bg_height,
+           input_area_width + 2 * bg_padding, bg_height,
+           stroke=0, fill=1)
     c.setFillColorRGB(0, 0, 0)
 
-    # Draw user inputs with word wrapping
-    y_position = (height - 55 - rect_height) + rect_height - margin
-    for text in user_inputs:
-        words = text.split()
-        line = []
-        for word in words:
-            line.append(word)
-            test_line = ' '.join(line)
-            text_width = c.stringWidth(test_line, "Helvetica", 10)
+    # Draw the input parameters text
+    first_input = True
+    for p in input_paragraphs:
+        is_input_title = first_input
+        w, h = p.wrapOn(c, input_area_width, height_p)
+        if input_y_pos - h < margin: break
+        p.drawOn(c, input_col_x, input_y_pos - h)
+        spacing = 8 if is_input_title else 2
+        input_y_pos -= (h + spacing)
+        first_input = False
 
-            if text_width > rect_width - 2 * margin:
-                # Draw the line without the last word
-                line.pop()
-                c.drawString(x_start + margin, y_position, ' '.join(line))
-                line = [word]
-                y_position -= line_height
+    # --- Calculation Results Column (Right) ---
+    results_y_start = input_col_y_start 
+    results_y_pos = results_y_start
 
-        # Draw remaining words
-        if line:
-            c.drawString(x_start + margin, y_position, ' '.join(line))
-            y_position -= line_height
+    def draw_results_paragraph(text, x, current_y, is_title=False):
+        nonlocal results_y_pos
+        clean_text = text.replace('**', '')
+        if is_title:
+            final_text = f"<u>{clean_text}</u>" 
+            style = style_results_title 
+        else:
+            final_text = clean_text
+            style = style_results_normal 
 
-    # Draw results starting right under title
+        p = Paragraph(final_text.replace('\n', '<br/>'), style)
+        w, h = p.wrapOn(c, results_area_width, height_p)
+
+        if current_y - h < margin:
+            c.showPage()
+            current_y = height_p - margin
+            c.setFont("Helvetica-Bold", 16)
+            c.drawString(margin, top_y - 0.3*inch, report_title)
+            current_y = top_y - 0.7*inch
+            results_y_pos = current_y
+
+        p.drawOn(c, x, current_y - h)
+        return current_y - (h + 3)
+
     if hasattr(st.session_state, 'results') and st.session_state.results:
-        y_position = height - 80  # Start under title
-        text_lines = st.session_state.results.split('\n')
+        results_sections = st.session_state.results.split('\n\n')
+        for section in results_sections:
+            if not section.strip(): continue
+            lines = section.split('\n')
+            first_line = True
+            for line in lines:
+                 if not line.strip(): continue
+                 is_section_title = first_line and line.startswith("**")
+                 results_y_pos = draw_results_paragraph(line, results_area_x, results_y_pos, is_title=is_section_title)
+                 first_line = False
+            results_y_pos -= 10
 
-        for line in text_lines:
-            if y_position < 50:
-                c.showPage()
-                y_position = height - 50
-
-            if not line.strip():  # Skip empty lines but maintain spacing
-                y_position -= 15
-                continue
-
-            if line.startswith('**') and line.endswith('**'):
-                # Entirely bold line
-                draw_formatted_text(line, 50, y_position, is_bold=True)
-            elif '**' in line:
-                # Line contains bold sections
-                parts = line.split('**')
-                x_position = 50
-                for i, part in enumerate(parts):
-                    if not part:  # Skip empty parts
-                        continue
-                    is_bold = (i % 2 == 1)  # Alternate between normal and bold
-                    draw_formatted_text(part, x_position, y_position, is_bold=is_bold)
-                    # Calculate next x position based on text width
-                    font = "Helvetica-Bold" if is_bold else "Helvetica"
-                    x_position += c.stringWidth(part, font, 12)
-            else:
-                # Normal text
-                draw_formatted_text(line, 50, y_position, is_bold=False)
-
-            y_position -= 15
-
-    # Page 2: Graphs
+    # --- Page 2: Graphs ---
     c.showPage()
     c.setPageSize(landscape(letter))
-    width, height = landscape(letter)
+    width_land, height_land = landscape(letter)
 
-    # Graph area
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, height - 30, "Graph 1 : Henssge Evolution (Rectal)")
-    c.drawString(width / 2 + 50, height - 30, "Graph 2 : Henssge Evolution (Brain)")
-    c.drawString(50, height / 2, "Graph 3 : Methods Comparison")
+    margin_land = 0.5*inch
+    graph_area_top = height_land - margin_land 
+    graph_area_bottom = margin_land
+    graph_area_height = graph_area_top - graph_area_bottom
+    graph_row_height = graph_area_height / 2 - 0.1*inch 
 
-    # Add graphs if they exist
+    # Define graph drawing areas
+    graph1_x = margin_land
+    graph1_width = width_land / 2 - margin_land - 0.1*inch
+    graph1_y_bottom = graph_area_top - graph_row_height 
+
+    graph2_x = width_land / 2 + 0.1*inch
+    graph2_width = width_land / 2 - margin_land - 0.1*inch
+    graph2_y_bottom = graph1_y_bottom 
+
+    graph3_x = margin_land
+    graph3_width = width_land - 2 * margin_land
+    graph3_y_bottom = graph_area_bottom 
+
+    def draw_image_scaled(img_reader, x, y_bottom, max_w, max_h):
+        img_width, img_height = img_reader.getSize()
+        if img_width <= 0 or img_height <= 0: return
+        scale = min(max_w / img_width, max_h / img_height)
+        final_width = img_width * scale
+        final_height = img_height * scale
+        draw_x = x + (max_w - final_width) / 2
+        draw_y = y_bottom + (max_h - final_height) / 2 
+        c.drawImage(img_reader, draw_x, draw_y, width=final_width, height=final_height)
+
+    # --- Plot ---
     if hasattr(st.session_state, 'fig_henssge_rectal') and st.session_state.fig_henssge_rectal is not None:
         img_data_1 = io.BytesIO()
-        st.session_state.fig_henssge_rectal.savefig(img_data_1, format='png')
+        st.session_state.fig_henssge_rectal.savefig(img_data_1, format='png', bbox_inches='tight')
         img_data_1.seek(0)
         img_1 = ImageReader(img_data_1)
-        img_width_1, img_height_1 = img_1.getSize()
-        scale_1 = min((width / 2 - 30) / img_width_1, (height / 2 - 30) / img_height_1)
-        final_width_1 = img_width_1 * scale_1
-        final_height_1 = img_height_1 * scale_1
-        c.drawImage(img_1, 20, height - 36 - final_height_1, width=final_width_1, height=final_height_1)
+        draw_image_scaled(img_1, graph1_x, graph1_y_bottom, graph1_width, graph_row_height) 
         img_data_1.close()
 
     if hasattr(st.session_state, 'fig_henssge_brain') and st.session_state.fig_henssge_brain is not None:
         img_data_2 = io.BytesIO()
-        st.session_state.fig_henssge_brain.savefig(img_data_2, format='png')
+        st.session_state.fig_henssge_brain.savefig(img_data_2, format='png', bbox_inches='tight')
         img_data_2.seek(0)
         img_2 = ImageReader(img_data_2)
-        img_width_2, img_height_2 = img_2.getSize()
-        scale_2 = min((width / 2 - 30) / img_width_2, (height / 2 - 30) / img_height_2)
-        final_width_2 = img_width_2 * scale_2
-        final_height_2 = img_height_2 * scale_2
-        c.drawImage(img_2, width / 2 + 20, height - 36 - final_height_2, width=final_width_2, height=final_height_2)
+        draw_image_scaled(img_2, graph2_x, graph1_y_bottom, graph2_width, graph_row_height) 
         img_data_2.close()
 
     if hasattr(st.session_state, 'fig_comparison') and st.session_state.fig_comparison is not None:
         img_data_3 = io.BytesIO()
-        st.session_state.fig_comparison.savefig(img_data_3, format='png')
+        st.session_state.fig_comparison.savefig(img_data_3, format='png', bbox_inches='tight')
         img_data_3.seek(0)
         img_3 = ImageReader(img_data_3)
-        img_width_3, img_height_3 = img_3.getSize()
-        scale_3 = min((width - 20) / img_width_3, (height / 2 - 20) / img_height_3)
-        final_width_3 = img_width_3 * scale_3
-        final_height_3 = img_height_3 * scale_3
-        c.drawImage(img_3, 00, 00, width=final_width_3, height=final_height_3)
+        draw_image_scaled(img_3, graph3_x, graph3_y_bottom, graph3_width, graph_row_height)
         img_data_3.close()
 
+    # --- Finalize PDF ---
     c.save()
     pdf_bytes = buffer.getvalue()
     buffer.close()
