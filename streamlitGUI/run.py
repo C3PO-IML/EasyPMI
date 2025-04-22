@@ -212,7 +212,7 @@ if __name__ == '__main__':
     use_ref_toggle = st.sidebar.toggle(
         "Use Measurement Date/Time",
         key="use_reference_datetime",
-        help="Activate to specify when measurements were taken, to get absolute time of death estimates, instead of relative PMI."
+        help="Activate to specify when measurements were taken, to get absolute **Time of Death (ToD)** estimates, instead of relative **PMI**."
     )
     if st.session_state.use_reference_datetime:
         ref_date = st.sidebar.date_input(
