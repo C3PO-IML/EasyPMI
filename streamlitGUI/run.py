@@ -1,7 +1,8 @@
 import streamlit as st
 from datetime import datetime, date, time
 from core import compute
-from core.constants import IdiomuscularReactionType, SupportingBase, EnvironmentType, BodyCondition, RigorType, LividityType, LividityMobilityType, LividityDisappearanceType
+from core.constants import (IdiomuscularReactionType, SupportingBase, EnvironmentType, BodyCondition, RigorType, LividityType, 
+                            LividityMobilityType, LividityDisappearanceType,TEMPERATURE_LIMITS, TemperatureLimitsType, BODY_MASS_LIMIT)
 from core.input_parameters import InputParameters
 from core import time_converter
 from streamlitGUI import plot
@@ -106,7 +107,6 @@ def _init_state() -> None:
     if 'fig_comparison' not in st.session_state:
         st.session_state.fig_comparison = None
     
-
 def _reset() -> None:
     """
     Resets all fields in the user interface to their default state.
@@ -136,7 +136,6 @@ def _reset() -> None:
 
     # Force page rerun to reset all widgets
     st.rerun()
-
 
 def _on_calculate():
     """
@@ -188,9 +187,9 @@ def _on_calculate():
     st.session_state.fig_henssge_brain = plot.plot_temperature_henssge_brain(input_parameters, results_obj.henssge_brain)
     st.session_state.fig_comparison = plot.plot_comparative_pmi_results(results_obj)
 
-
+# --- Graphic interface ---
 if __name__ == '__main__':
-    # User interface
+    # Title
     st.title("EasyPMI")
 
     # Help section
@@ -201,12 +200,19 @@ if __name__ == '__main__':
     # Initialize session variables
     _init_state()
 
+    # Retrieve limits for help messages
+    temp_limits = TEMPERATURE_LIMITS
+    tympanic_min, tympanic_max = temp_limits.get(TemperatureLimitsType.TYMPANIC, (None, None))
+    rectal_min, rectal_max = temp_limits.get(TemperatureLimitsType.RECTAL, (None, None))
+    ambient_min, ambient_max = temp_limits.get(TemperatureLimitsType.AMBIENT, (None, None))
+    mass_min, mass_max = BODY_MASS_LIMIT
+
     # User inputs
     st.sidebar.subheader("Reference Time (Optional)")
     use_ref_toggle = st.sidebar.toggle(
         "Use Measurement Date/Time",
         key="use_reference_datetime",
-        help="Activate to specify when measurements were taken, to get absolute time of death estimates."
+        help="Activate to specify when measurements were taken, to get absolute time of death estimates, instead of relative PMI."
     )
     if st.session_state.use_reference_datetime:
         ref_date = st.sidebar.date_input(
@@ -223,29 +229,34 @@ if __name__ == '__main__':
     # Text inputs with session_state keys
     st.sidebar.text_input(
         "Tympanic temperature (°C) : ",
-        key="input_t_tympanic"
+        key="input_t_tympanic",
+        help=f"Enter the tympanic temperature in degrees Celsius. Expected range: {tympanic_min}°C to {tympanic_max}°C."
     )
 
     st.sidebar.text_input(
         "Rectal temperature (°C) : ",
-        key="input_t_rectal"
+        key="input_t_rectal",
+        help=f"Enter the rectal temperature in degrees Celsius. Expected range: {rectal_min}°C to {rectal_max}°C."
     )
 
     st.sidebar.text_input(
         "Ambient temperature (°C) : ",
-        key="input_t_ambient"
+        key="input_t_ambient",
+        help=f"Enter the ambient temperature in degrees Celsius. Expected range: {ambient_min}°C to {ambient_max}°C."
     )
 
     st.sidebar.text_input(
         "Body weight (kg) : ",
-        key="input_M"
+        key="input_M",
+        help=f"Enter the body weight in kilograms. Expected range: {mass_min} kg to {mass_max} kg."
     )
 
     # Radio selector for choosing between manual and predefined corrective factor
     correction_mode = st.sidebar.radio(
         "Corrective factor mode:",
         options=["Predefined (using dropdown lists)", "Manual input"],
-        key="correction_mode"
+        key="correction_mode",
+        help="Choose how the corrective factor (Cf) for cooling calculation is determined: either automatically based on predefined conditions, or by entering a specific value manually."
     )
 
     # Display different inputs based on the selected mode
@@ -253,7 +264,8 @@ if __name__ == '__main__':
         # Show only manual input field
         st.sidebar.text_input(
             "Corrective factor (Cf) : ",
-            key="input_Cf"
+            key="input_Cf",
+            help="Enter the specific corrective factor manually. Typical values range from ~0.35 to ~1.8, but depend heavily on circumstances. Refer to the documentation for more details."
         )
         
         # Hide the dropdown lists but keep them in session state with default values
@@ -273,18 +285,21 @@ if __name__ == '__main__':
             "Body condition :",
             options=BodyCondition,
             key="body_condition",
+            help="Select the condition of the body's clothing or covering. Influences heat loss."
         )
 
         environment_selectbox = st.sidebar.selectbox(
             "Environment :",
             options=EnvironmentType,
             key="environment",
+            help="Select the environment where the body was found (air, water ; stable or in motion). Influences heat loss."
         )
 
         supporting_base_selectbox = st.sidebar.selectbox(
             "Supporting base :",
             options=SupportingBase,
             key="supporting_base",
+            help="Select the surface the body was resting on. Can insulate or accelerate cooling."
         )
 
     # Thanatological signs
@@ -292,31 +307,36 @@ if __name__ == '__main__':
     idiomuscular_reaction_selectbox = st.sidebar.selectbox(
         "Idiomuscular Reaction :",
         options=IdiomuscularReactionType,
-        key="idiomuscular_reaction"
+        key="idiomuscular_reaction",
+        help="Select the observed muscle reaction upon mechanical stimulation (e.g., percussion). Helps estimate early PMI."
     )
 
     rigor_selectbox = st.sidebar.selectbox(
         "Type of Rigor :",
         options=RigorType,
-        key="rigor"
+        key="rigor",
+        help="Select the stage of rigor mortis (body stiffening)."
     )
 
     lividity_selectbox = st.sidebar.selectbox(
         "Type of Lividity :",
         options=LividityType,
-        key="lividity"
+        key="lividity",
+        help="Select the development stage of livor mortis"
     )
 
     lividity_mobility_selectbox = st.sidebar.selectbox(
         "Lividity Mobility :",
         options=LividityMobilityType,
-        key="lividity_mobility"
+        key="lividity_mobility",
+        help="Select lividity shifting when body position is modified (indicates fixation)."
     )
 
     st.sidebar.selectbox(
         "Disappearance of Lividity :",
         options=LividityDisappearanceType,
-        key="lividity_disappearance"
+        key="lividity_disappearance",
+        help="Select disappearance of lividity under pressure (indicates fixation)."
     )
 
     # Action buttons
