@@ -13,30 +13,40 @@
 # along with Post mortem delay claculator. If not, see <https://www.gnu.org/licenses/>.
 
 """
-Launches a Streamlit application from a Python script.
+Main entry point for the EasyPMI Streamlit application.
 
-This script starts a Streamlit application contained in the 'streamlitGUI/run.py' file
-without automatically opening a web browser (headless mode).
+This script configures the Python path to ensure all modules are found
+and then launches the main user interface defined in the streamlitGUI package.
+It serves as the single command to run the application both locally and
+for deployment.
 
-Details:
-    - Imports the necessary modules from Streamlit
-    - Configures headless mode (no automatic browser opening)
-    - Executes the specified Streamlit application
+Functionality:
+    1. Adjusts sys.path: Adds the project's root directory to the Python path,
+       allowing absolute imports like 'from core import ...' and
+       'from streamlitGUI import ...' to work correctly regardless of how
+       the script is executed.
+    2. Imports UI Builder: Imports the 'build_main_ui' function from
+       'streamlitGUI.run' module *after* the path is configured.
+    3. Executes UI: If run as the main script (__name__ == "__main__"),
+       it calls 'build_main_ui()' to construct and display the Streamlit interface.
 
-Parameters for the run function:
-    - 'streamlitGUI/run.py': Path to the Streamlit script to execute
-    - args=[]: List of arguments to pass to the script
-    - flag_options=[]: Additional configuration options
-    - is_hello=False: Indicates this is not the demo application
-
-Usage example:
-    This script can be run directly to start the Streamlit application
-    in a controlled environment, such as when integrating with another application
-    or for automated testing.
+Usage:
+    To run the application locally:
+        streamlit run EasyPMI.py
+    For deployment (e.g., Streamlit Community Cloud):
+        Set 'EasyPMI.py' as the main application file.
 """
 
-from streamlit import config as _config
-from streamlit.web.bootstrap import run
+import sys
+import os
 
-_config.set_option("server.headless", True)
-run('streamlitGUI/run.py', args=[], flag_options=[], is_hello=False)
+# --- Path configuration ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+# Import the main user interface function AFTER configuring the path
+from streamlitGUI.run import build_main_ui
+
+if __name__ == "__main__":
+    build_main_ui()

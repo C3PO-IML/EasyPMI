@@ -27,9 +27,8 @@ style_input = ParagraphStyle(
 # Style specific for the Input Title 
 style_input_title = ParagraphStyle(
     name='InputTitleStyle',
-    parent=style_input, # Inherit font, size etc.
-    fontName='Helvetica-Bold', # Make it Bold
-    # Underlining handled by <u> tag
+    parent=style_input, 
+    fontName='Helvetica-Bold', 
 )
 
 
@@ -61,10 +60,18 @@ def generate_pdf() -> bytes:
     c = pdf_canvas.Canvas(buffer, pagesize=letter)
 
     margin = 0.5*inch
-    input_area_width = 2.5*inch
-    results_area_x = margin + input_area_width + 0.2*inch
-    results_area_width = width_p - results_area_x - margin
     top_y = height_p - margin
+
+    # --- Calculate Widths and Positions X ---
+    total_available_width = width_p - 2 * margin
+    space_between_cols = 0.2 * inch
+    # Input column (Right, ~1/4)
+    input_area_width = total_available_width * 0.25
+    # Results column (Left, ~3/4)
+    results_area_width = total_available_width - input_area_width - space_between_cols
+    # Positions X
+    results_area_x = margin # Results at left
+    input_area_x = margin + results_area_width + space_between_cols # Inputs at right
 
     # --- Conditional Main Title ---
     report_title = "Estimation of Post-Mortem Interval"
@@ -74,8 +81,7 @@ def generate_pdf() -> bytes:
     c.drawString(margin, top_y - 0.3*inch, report_title)
     current_y = top_y - 0.7*inch
 
-    # --- Input Parameters Column (Left) ---
-    input_col_x = margin
+    # --- Input Parameters Column (Right) ---
     input_col_y_start = current_y 
     grey_background = HexColor("#F0F0F0")
 
@@ -118,10 +124,8 @@ def generate_pdf() -> bytes:
     first_input = True
 
     for i, text in enumerate(user_inputs_text):
-        # Use specific style for the first line (title)
         is_input_title = (i == 0)
         style = style_input_title if is_input_title else style_input
-        # Text already contains 
         p = Paragraph(text.replace('\n', '<br/>'), style)
         input_paragraphs.append(p)
         w, h = p.wrapOn(c, input_area_width, height_p)
@@ -133,7 +137,7 @@ def generate_pdf() -> bytes:
     bg_y = input_col_y_start + bg_padding
     bg_height = total_input_height_calculated + bg_padding
     c.setFillColor(grey_background)
-    c.rect(input_col_x - bg_padding, bg_y - bg_height,
+    c.rect(input_area_x - bg_padding, bg_y - bg_height,
            input_area_width + 2 * bg_padding, bg_height,
            stroke=0, fill=1)
     c.setFillColorRGB(0, 0, 0)
@@ -144,7 +148,7 @@ def generate_pdf() -> bytes:
         is_input_title = first_input
         w, h = p.wrapOn(c, input_area_width, height_p)
         if input_y_pos - h < margin: break
-        p.drawOn(c, input_col_x, input_y_pos - h)
+        p.drawOn(c, input_area_x, input_y_pos - h)
         spacing = 8 if is_input_title else 2
         input_y_pos -= (h + spacing)
         first_input = False
@@ -153,7 +157,7 @@ def generate_pdf() -> bytes:
     results_y_start = input_col_y_start 
     results_y_pos = results_y_start
 
-    def draw_results_paragraph(text, x, current_y, is_title=False):
+    def draw_results_paragraph(text, x_start, current_y, available_width, is_title=False):
         nonlocal results_y_pos
         clean_text = text.replace('**', '')
         if is_title:
@@ -164,7 +168,7 @@ def generate_pdf() -> bytes:
             style = style_results_normal 
 
         p = Paragraph(final_text.replace('\n', '<br/>'), style)
-        w, h = p.wrapOn(c, results_area_width, height_p)
+        w, h = p.wrapOn(c, available_width, height_p)
 
         if current_y - h < margin:
             c.showPage()
@@ -174,7 +178,7 @@ def generate_pdf() -> bytes:
             current_y = top_y - 0.7*inch
             results_y_pos = current_y
 
-        p.drawOn(c, x, current_y - h)
+        p.drawOn(c, x_start, current_y - h)
         return current_y - (h + 3)
 
     if hasattr(st.session_state, 'results') and st.session_state.results:
@@ -186,7 +190,7 @@ def generate_pdf() -> bytes:
             for line in lines:
                  if not line.strip(): continue
                  is_section_title = first_line and line.startswith("**")
-                 results_y_pos = draw_results_paragraph(line, results_area_x, results_y_pos, is_title=is_section_title)
+                 results_y_pos = draw_results_paragraph(line, results_area_x, results_y_pos, results_area_width, is_title=is_section_title)
                  first_line = False
             results_y_pos -= 10
 
