@@ -157,15 +157,26 @@ def generate_pdf() -> bytes:
     results_y_start = input_col_y_start 
     results_y_pos = results_y_start
 
-    def draw_results_paragraph(text, x_start, current_y, available_width, is_title=False):
+    def draw_results_paragraph(text, x_start, current_y, available_width, is_title_line=False, contains_embedded_title=False):
+        """
+        Draws results text.
+        is_title_line: True if this line IS the section title (e.g., Henssge multi-line).
+        contains_embedded_title: True if the line ITSELF contains the title + value (e.g., Signs single-line).
+        """
         nonlocal results_y_pos
-        clean_text = text.replace('**', '')
-        if is_title:
+        if is_title_line:
+            clean_text = text.replace('**', '')
             final_text = f"<u>{clean_text}</u>" 
-            style = style_results_title 
-        else:
-            final_text = clean_text
+            style = style_results_title     
+        elif contains_embedded_title:
+            parts = text.split(':', 1)
+            title_part = parts[0].replace('**', '').strip() if len(parts) > 0 else ''
+            value_part = parts[1].replace('**', '').strip() if len(parts) > 1 else ''
+            final_text = f"<u><b>{title_part}:</b></u> {value_part}"
             style = style_results_normal 
+        else:
+            final_text = text 
+            style = style_results_normal
 
         p = Paragraph(final_text.replace('\n', '<br/>'), style)
         w, h = p.wrapOn(c, available_width, height_p)
@@ -186,13 +197,22 @@ def generate_pdf() -> bytes:
         for section in results_sections:
             if not section.strip(): continue
             lines = section.split('\n')
+            is_multi_line_section = len(lines) > 1 
             first_line = True
             for line in lines:
                  if not line.strip(): continue
-                 is_section_title = first_line and line.startswith("**")
-                 results_y_pos = draw_results_paragraph(line, results_area_x, results_y_pos, results_area_width, is_title=is_section_title)
+                 is_the_section_title = first_line and line.startswith("**")
+                 contains_title_and_value = not is_multi_line_section and is_the_section_title
+                 results_y_pos = draw_results_paragraph(
+                     line,
+                     results_area_x,
+                     results_y_pos,
+                     results_area_width,
+                     is_title_line= (is_the_section_title and is_multi_line_section), 
+                     contains_embedded_title=contains_title_and_value 
+                 )
                  first_line = False
-            results_y_pos -= 10
+            results_y_pos -= 10 
 
     # --- Page 2: Graphs ---
     c.showPage()

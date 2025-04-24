@@ -8,7 +8,6 @@ from streamlitGUI import plot
 from streamlitGUI.help import build_help_section
 from streamlitGUI.pdf_generation import generate_pdf
 from streamlitGUI.tools import convert_decimal_separator
-from streamlitGUI.output_formatter import format_results_output
 
 def _build_input_parameters() -> InputParameters:
     """
@@ -179,7 +178,7 @@ def _on_calculate():
     # Results
     results_obj = compute.run(input_parameters)
     st.session_state.results_object = results_obj
-    st.session_state.results = format_results_output(results_obj)
+    st.session_state.results = str(results_obj)
 
     # Plots
     st.session_state.fig_henssge_rectal = plot.plot_temperature_henssge_rectal(input_parameters, results_obj.henssge_rectal) 
@@ -222,6 +221,7 @@ def build_main_ui():
             )
             ref_time = st.time_input(
                 "Measurement Time:",
+                step=900, # 15 minutes
                 key="reference_time"
             )
 

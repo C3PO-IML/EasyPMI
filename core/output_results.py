@@ -1,8 +1,7 @@
 from typing import Optional
 import numpy as np
 
-from core.tools import format_time
-
+from core import time_converter
 
 class HenssgeRectalResults:
 
@@ -46,17 +45,32 @@ class HenssgeRectalResults:
         """
         Display results as string
         """
-        to_str = "**Hennssge Rectal :**  \n"
+        title = "**Henssge Rectal:**"
 
         if self.error_message:
-            return to_str + self.error_message
+            return f"{title}\n{self.error_message}"
 
-        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]  \n"
-        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}  \n"
-        to_str += f"Thermal Quotient (Q): {self.thermal_quotient:.2f}  \n"
-        to_str += f"Corrective factor (Cf): {self.corrective_factor:.2f}"
-        return to_str
+        lines = [title]
+        pmi_str = time_converter.format_pmi_range_string(
+            self.pmi_min(), self.pmi_max(), self.post_mortem_interval, prefix=""
+        )
+        if time_converter.get_reference_datetime() is not None and '[' in pmi_str:
+             parts = pmi_str.split('[')
+             if len(parts) == 2:
+                 interval = parts[1].replace(' - ', ' / ').replace(']', '')
+                 pmi_str = f"{parts[0].strip()} [{interval}]"
 
+        label = "Estimated ToD" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
+        lines.append(f"- {label}: {pmi_str.strip()}")
+
+        if self.confidence_interval is not None:
+            lines.append(f"- Confidence interval: {self.confidence_interval:.2f} hours")
+        if self.thermal_quotient is not None:
+            lines.append(f"- Thermal Quotient (Q): {self.thermal_quotient:.2f}")
+        if self.corrective_factor is not None:
+            lines.append(f"- Corrective factor (Cf): {self.corrective_factor:.2f}")
+
+        return "\n".join(lines)
 
 class HenssgeBrainResults:
     # Constructor
@@ -92,14 +106,27 @@ class HenssgeBrainResults:
         """
         Display results as string
         """
-        to_str = "**Hennssge Brain :**  \n"
-
+        title = "**Henssge Brain:**"
         if self.error_message:
-            return to_str + self.error_message
+            return f"{title}\n{self.error_message}"
 
-        to_str += f"Estimated PMI: {format_time(self.post_mortem_interval)} [{format_time(self.pmi_min())} - {format_time(self.pmi_max())}]  \n"
-        to_str += f"Confidence interval (CI): {self.confidence_interval:.2f}"
-        return to_str
+        lines = [title]
+        pmi_str = time_converter.format_pmi_range_string(
+            self.pmi_min(), self.pmi_max(), self.post_mortem_interval, prefix=""
+        )
+        if time_converter.get_reference_datetime() is not None and '[' in pmi_str:
+             parts = pmi_str.split('[')
+             if len(parts) == 2:
+                 interval = parts[1].replace(' - ', ' / ').replace(']', '')
+                 pmi_str = f"{parts[0].strip()} [{interval}]"
+
+        label = "Estimated time of death" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
+        lines.append(f"- {label}: {pmi_str.strip()}")
+        
+        if self.confidence_interval is not None:
+            lines.append(f"- Confidence interval: {self.confidence_interval:.2f} hours")
+
+        return "\n".join(lines)
 
 
 class BaccinoResults:
@@ -140,18 +167,42 @@ class BaccinoResults:
         """
         Display results as string
         """
-        to_str = "**Hennssge Rectal :**  \n"
-
+        title = "**Baccino:**"
         if self.error_message:
-            return to_str + self.error_message
+            return f"{title}\n{self.error_message}"
 
-        to_str += (f"Estimated PMI (Interval Method): {format_time(self.post_mortem_interval_interval)} "
-                   f"[{format_time(self.post_mortem_interval_interval - self.confidence_interval_interval)} - {format_time(self.post_mortem_interval_interval + self.confidence_interval_interval)}]")
-        to_str += "  \n"
-        to_str += (f"Estimated PMI (Global Method): {format_time(self.post_mortem_interval_global)} "
-                   f"[{format_time(self.post_mortem_interval_global - self.confidence_interval_global)} - {format_time(self.post_mortem_interval_global + self.confidence_interval_global)}]")
-        return to_str
+        lines = [title]
+        label = "Estimated time of death" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
 
+        # Interval Method
+        if self.post_mortem_interval_interval is not None and self.confidence_interval_interval is not None:
+            center_int = self.post_mortem_interval_interval
+            ci_int = self.confidence_interval_interval
+            min_int = max(0.0, center_int - ci_int)
+            max_int = center_int + ci_int
+            pmi_string_int = time_converter.format_pmi_range_string(min_int, max_int, center_int, prefix="")
+            if time_converter.get_reference_datetime() is not None and '[' in pmi_string_int:
+                 parts = pmi_string_int.split('[')
+                 if len(parts) == 2:
+                     interval = parts[1].replace(' - ', ' / ').replace(']', '')
+                     pmi_string_int = f"{parts[0].strip()} [{interval}]"
+            lines.append(f"- Interval Method ({label}): {pmi_string_int.strip()}")
+
+        # Global Method
+        if self.post_mortem_interval_global is not None and self.confidence_interval_global is not None:
+            center_glob = self.post_mortem_interval_global
+            ci_glob = self.confidence_interval_global
+            min_glob = max(0.0, center_glob - ci_glob)
+            max_glob = center_glob + ci_glob
+            pmi_string_glob = time_converter.format_pmi_range_string(min_glob, max_glob, center_glob, prefix="")
+            if time_converter.get_reference_datetime() is not None and '[' in pmi_string_glob:
+                 parts = pmi_string_glob.split('[')
+                 if len(parts) == 2:
+                     interval = parts[1].replace(' - ', ' / ').replace(']', '')
+                     pmi_string_glob = f"{parts[0].strip()} [{interval}]"
+            lines.append(f"- Global Method ({label}): {pmi_string_glob.strip()}")
+
+        return "\n".join(lines)
 
 class PostMortemIntervalResults:
     # Constructor
@@ -178,27 +229,19 @@ class PostMortemIntervalResults:
 
     def __str__(self):
         # Display results as string
-        to_str = f"**{self.name}** "
-        
+        title = f"**{self.name}:** "
         if self.error_message:
-            return to_str + f": {self.error_message}"
-        
-        # Check if both values are defined and not NaN
-        if self.min is not None and not np.isnan(self.min) and self.max is not None and not np.isnan(self.max):
-            return to_str + f": Estimated PMI between {format_time(self.min)} and {format_time(self.max)}"
-        
-        # If only min is defined and not NaN
-        elif self.min is not None and not np.isnan(self.min):
-            return to_str + f": Estimated PMI > {format_time(self.min)}"
-        
-        # If only max is defined and not NaN
-        elif self.max is not None and not np.isnan(self.max):
-            return to_str + f": Estimated PMI < {format_time(self.max)}"
-        
-        # If no value is defined or all are NaN
-        else:
-            return to_str + ": Not specified"
+            return f"{title}{self.error_message}"
 
+        label = "Estimated ToD" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
+        Notspecified = "Not specified"
+        pmi_value_string = time_converter.format_pmi_range_string(
+            self.min, self.max, prefix=""
+        ).strip()
+        if pmi_value_string == "Not specified" or not pmi_value_string: 
+            return f"{title} Not specified"
+        else:
+            return f"{title} {label} {pmi_value_string}"
 
 class OutputResults:
 
