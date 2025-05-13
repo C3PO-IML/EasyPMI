@@ -160,12 +160,15 @@ def build_help_section():
                 *   Humidity levels
                 *   Air circulation (wind)
                 *   Exposure to sunlight
+                *   Surface on which the body is placed (ground, water, etc.)
                 These factors can compromise the accuracy of mathematical models based on standardized cooling rates.
 
             *   **Individual Variables:** Uncertainty is introduced by factors such as:
+                *   Subject's age and sex
                 *   Body weight (especially at extremes)
+                *   Body surface area
                 *   Presence and type of clothing or coverings *(Corrective factors are imperfect estimations)*
-                *   Underlying pathological conditions (fever, hypothermia before death)
+                *   Underlying pathological conditions (fever, hypothermia before death) and causes of death (burns, blood loss, etc.)
                 *   Body composition (fat vs. muscle mass)
                 Current algorithms cannot fully account for all these variations.
 
@@ -178,7 +181,6 @@ def build_help_section():
                         The limits described for thanatological signs can also be significantly affected by temperature and other factors.
 
             **Conclusion:**
-
             These limitations should be seriously considered by forensic practitioners when interpreting the results provided by this application. 
                         The estimations should be viewed as aids within a broader forensic context, not as definitive determinations of the time of death. 
                         Always correlate the application's output with scene findings, witness information, and other forensic evidence.
