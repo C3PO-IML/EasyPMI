@@ -1,15 +1,19 @@
-# EasyPMI
+# EasyPMI: Post-Mortem Interval Estimator
 
-This repository contains a Python application for estimating short post-mortem interval (*PMI*) using various methods and parameters. 
-The application leverages numerical methods and empirical data to provide accurate estimations of the time since death.
+EasyPMI is a Python application designed to estimate short post-mortem interval (PMI) using various forensic methods and environmental parameters. 
+The application leverages numerical methods and empirical data to provide estimations of the time since death, with an intuitive web-based user interface built with Streamlit.
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Features
 - **Henssge Method**: Estimates PMI using rectal or brain temperature (*We recommend measuring tymanic temperature with a probe*).  
 - **Baccino Method**: Estimates PMI using tympanic temperature with a linear cooling model.  
 - **Thanatological Signs**: Estimates PMI based on idiomuscular reactions, rigor mortis, lividity, and other post-mortem changes.  
-- **Customizable Parameters**: Allows manual input of corrective factors, body conditions, and environmental factors.  
+- **Customization**: 
+    - Allows manual input of corrective factors, body conditions, and environmental factors. 
+    - Option to use a **reference time** (time of examination) to obtain an estimated absolute **Time of Death (ToD)** instead of **Post mortem interval (PMI)**  
 - **Graphical Visualization**: Provides plots for thermal decay curves and comparative PMI results.  
-- **PDF Report Generation**: Generates a PDF report of the results for easy sharing and documentation.  
+- **PDF Report Generation**: Generation of a detailed PDF report including input parameters, calculated results, and graphs.  
 
 ## Installation
 
@@ -24,6 +28,15 @@ Clone the Repository:
 git clone https://github.com/C3PO-IML/EasyPMI.git
 ```
 
+(Recommended) Create and Activate a Virtual Environment:
+```bash
+python -m venv venv
+# On Windows
+venv\Scripts\activate
+# On macOS/Linux
+source venv/bin/activate
+```
+
 Install the required Python packages :
 ```bash
 pip install -r requirements.txt
@@ -31,16 +44,20 @@ pip install -r requirements.txt
  
 Run the application :
 ```bash
-python .\EasyPMI.py
+streamlit run EasyPMI.py
 ```
 *This will run the streamlit backend server locally*
 
 # Usage 
 If run locally, the web interface will be accessible from [http://localhost:8501/](http://localhost:8501/)
 
-- **Enter Parameters**: Use the sidebar to input the necessary parameters such as *tympanic temperature*, *rectal temperature*, *ambient temperature*, *body weight*, *corrective factor*, *body condition*, *environment*, *supporting base*, *and thanatological signs*.
+- Refer to the **"Help and User Guide"** section (accessible via the expander at the top of the page) within the application for details on each parameter, method, and limitations.
 
-- **Calculate Results**: Click the `Calculate` button to compute the PMI using the entered parameters.
+- **Enter Parameters**: 
+    - Use the sidebar to input the necessary parameters such as *tympanic temperature*, *rectal temperature*, *ambient temperature*, *body weight*, *corrective factor*, *body condition*, *environment*, *supporting base*, *and thanatological signs*.
+    - Reference Time (Optional): Enable this option if you want to obtain an estimated *Time of Death (ToD)*. If disabled, results will be expressed as a relative *Post-Mortem Interval (PMI)* (e.g., "5h30m")
+
+- **Calculate Results**: Click the `Calculate` button to get the PMI/ToD estimates.
 
 - **Reset Parameters**: Click the `Reset` button to clear all inputs and start over.
 
@@ -61,13 +78,19 @@ PDF generation mechanism will also be found in this package.
 A set of tests that can detect regression in core application.
 Each file describe regression tests for a specific algorithm. 
 
-## Contributing
+To discover and run all tests within the `Tests/` directory, use the following command from the project's root directory:
+
+```bash
+python -m unittest discover -s Tests -t .
+```
+
+# Contributing
 Contributions are welcome! If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request.
 
-## License
+# License
 This project is licensed under the GNU General Public License v3.0. See the LICENSE file for details.
 
-## Acknowledgments
+# Acknowledgments
 The methods and empirical data used in this application are based on the work of Henssge and Baccino, as well as other forensic science research.
 Special thanks to the contributors and maintainers of the libraries used in this project.
 Contact

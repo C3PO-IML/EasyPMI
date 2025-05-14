@@ -1,3 +1,5 @@
+# streamlitGUI/run.py
+
 import streamlit as st
 from datetime import datetime, date, time
 from core import compute, time_converter
@@ -188,6 +190,9 @@ def _on_calculate():
 def build_main_ui():
     """Builds the main Streamlit user interface."""
 
+    # Initialize session variables
+    _init_state()
+
     # Title
     st.title("EasyPMI")
 
@@ -195,9 +200,6 @@ def build_main_ui():
     if 'help_open' not in st.session_state:
         st.session_state.help_open = True
     build_help_section()
-
-    # Initialize session variables
-    _init_state()
 
     # Retrieve limits for help messages
     temp_limits = TEMPERATURE_LIMITS
@@ -270,12 +272,9 @@ def build_main_ui():
             )
             
             # Hide the dropdown lists but keep them in session state with default values
-            if 'body_condition' not in st.session_state:
-                st.session_state.body_condition = BodyCondition.NOT_SPECIFIED
-            if 'environment' not in st.session_state:
-                st.session_state.environment = EnvironmentType.NOT_SPECIFIED
-            if 'supporting_base' not in st.session_state:
-                st.session_state.supporting_base = SupportingBase.NOT_SPECIFIED
+            st.session_state.body_condition = st.session_state.get('body_condition', BodyCondition.NOT_SPECIFIED)
+            st.session_state.environment = st.session_state.get('environment', EnvironmentType.NOT_SPECIFIED)
+            st.session_state.supporting_base = st.session_state.get('supporting_base', SupportingBase.NOT_SPECIFIED)
         else:
             # Show predefined options with dropdown lists
             # Reset manual input if switching from manual to predefined

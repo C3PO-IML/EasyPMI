@@ -1,3 +1,5 @@
+# streamlitGUI/help.py
+
 import streamlit as st
 
 def build_help_section():

@@ -1,3 +1,5 @@
+# core/compute.py
+
 from core.computations import henssge_rectal, henssge_brain, baccino, idiomuscular_reaction, lividity, lividity_disappearance, lividity_mobility, rigor
 from core.input_parameters import InputParameters
 from core.output_results import OutputResults
@@ -43,7 +45,7 @@ def run(input_parameters: InputParameters) -> OutputResults:
     # Lividity Mobility
     results.lividity_mobility = lividity_mobility.compute(input_parameters)
 
-    # Rigo
+    # Rigor
     results.rigor = rigor.compute(input_parameters)
 
     # --- Return
