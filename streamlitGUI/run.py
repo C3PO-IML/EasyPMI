@@ -31,6 +31,28 @@ def _build_input_parameters() -> InputParameters:
     - Empty string inputs are converted to None to indicate missing data
     - Enumeration values are passed directly from the session state
     """
+    final_user_corrective_factor = None
+    final_body_condition = st.session_state.body_condition
+    final_environment = st.session_state.environment     
+    final_supporting_base = st.session_state.supporting_base 
+
+    if st.session_state.correction_mode == "Manual input":
+        if st.session_state.input_Cf:
+            try:
+                final_user_corrective_factor = convert_decimal_separator(st.session_state.input_Cf)
+                final_body_condition = BodyCondition.NOT_SPECIFIED
+                final_environment = EnvironmentType.NOT_SPECIFIED
+                final_supporting_base = SupportingBase.NOT_SPECIFIED
+            except ValueError:
+                st.error("Invalid manual corrective factor. Please check the value and try again.")
+                final_body_condition = BodyCondition.NOT_SPECIFIED
+                final_environment = EnvironmentType.NOT_SPECIFIED
+                final_supporting_base = SupportingBase.NOT_SPECIFIED
+        else:
+            final_body_condition = BodyCondition.NOT_SPECIFIED
+            final_environment = EnvironmentType.NOT_SPECIFIED
+            final_supporting_base = SupportingBase.NOT_SPECIFIED
+
     return InputParameters(
         tympanic_temperature=convert_decimal_separator(st.session_state.input_t_tympanic) if st.session_state.input_t_tympanic else None,
         rectal_temperature=convert_decimal_separator(st.session_state.input_t_rectal) if st.session_state.input_t_rectal else None,
@@ -41,9 +63,10 @@ def _build_input_parameters() -> InputParameters:
         lividity=st.session_state.lividity,
         lividity_disappearance=st.session_state.lividity_disappearance,
         lividity_mobility=st.session_state.lividity_mobility,
-        body_condition=st.session_state.body_condition,
-        environment=st.session_state.environment,
-        supporting_base=st.session_state.supporting_base
+        user_corrective_factor=final_user_corrective_factor,
+        body_condition=final_body_condition,
+        environment=final_environment,
+        supporting_base=final_supporting_base
     )
 
 def _init_state() -> None:
