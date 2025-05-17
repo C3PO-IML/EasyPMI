@@ -70,7 +70,7 @@ class HenssgeRectalResults:
         if self.thermal_quotient is not None:
             lines.append(f"- Thermal Quotient (Q): {self.thermal_quotient:.2f}")
         if self.corrective_factor is not None:
-            lines.append(f"- Corrective factor (Cf): {self.corrective_factor:.2f}")
+            lines.append(f"- Corrected corrective factor (Cf): {self.corrective_factor:.2f}")
 
         return "\n".join(lines)
 
