@@ -1,3 +1,5 @@
+# core/tools.py
+
 import math
 
 def format_time(time: float) -> str:

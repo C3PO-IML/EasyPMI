@@ -1,3 +1,5 @@
+# streamlitGUI/tools.py
+
 def convert_decimal_separator(value: str) -> float:
     """
     Convert a numeric string with a comma as a decimal separator to a float.

@@ -1,3 +1,5 @@
+# core/input_parameters.py
+
 from core.constants import IdiomuscularReactionType, RigorType, LividityType, LividityDisappearanceType, \
     LividityMobilityType, BodyCondition, EnvironmentType, SupportingBase
 
