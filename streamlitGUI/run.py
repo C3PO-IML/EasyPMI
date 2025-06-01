@@ -11,6 +11,8 @@ from streamlitGUI.help import build_help_section
 from streamlitGUI.pdf_generation import generate_pdf
 from streamlitGUI.tools import convert_decimal_separator
 
+from user_agents import parse
+
 def _build_input_parameters() -> InputParameters:
     """
     Constructs an InputParameters object from the current Streamlit session state.
@@ -53,7 +55,15 @@ def _build_input_parameters() -> InputParameters:
             final_environment = EnvironmentType.NOT_SPECIFIED
             final_supporting_base = SupportingBase.NOT_SPECIFIED
 
+    ref_dt = None
+    if st.session_state.use_reference_datetime:
+        try:
+            ref_dt = datetime.combine(st.session_state.reference_date, st.session_state.reference_time)
+        except Exception: 
+            st.error("Error combining reference date and time.") 
+
     return InputParameters(
+        reference_datetime=ref_dt, 
         tympanic_temperature=convert_decimal_separator(st.session_state.input_t_tympanic) if st.session_state.input_t_tympanic else None,
         rectal_temperature=convert_decimal_separator(st.session_state.input_t_rectal) if st.session_state.input_t_rectal else None,
         ambient_temperature=convert_decimal_separator(st.session_state.input_t_ambient) if st.session_state.input_t_ambient else None,
@@ -185,18 +195,6 @@ def _on_calculate():
     # Close help section if open
     st.session_state.help_open = False
     
-    # Set Reference Datetime if toggled  
-    ref_dt = None
-    if st.session_state.use_reference_datetime:
-        try:
-            # Combine date and time from session state into a datetime object
-            ref_dt = datetime.combine(st.session_state.reference_date, st.session_state.reference_time)
-        except Exception as e:
-            st.error(f"Error combining date and time: {e}")
-
-    # Set the reference in the time_converter module
-    time_converter.set_reference_datetime(ref_dt)
-
     # Inputs
     input_parameters = _build_input_parameters()
 
@@ -208,7 +206,7 @@ def _on_calculate():
     # Plots
     st.session_state.fig_henssge_rectal = plot.plot_temperature_henssge_rectal(input_parameters, results_obj.henssge_rectal) 
     st.session_state.fig_henssge_brain = plot.plot_temperature_henssge_brain(input_parameters, results_obj.henssge_brain)
-    st.session_state.fig_comparison = plot.plot_comparative_pmi_results(results_obj)
+    st.session_state.fig_comparison = plot.plot_comparative_pmi_results(results_obj, input_parameters.reference_datetime)
 
 def build_main_ui():
     """Builds the main Streamlit user interface."""

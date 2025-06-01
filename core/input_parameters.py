@@ -1,5 +1,7 @@
 # core/input_parameters.py
 
+from typing import Optional
+from datetime import datetime
 from core.constants import IdiomuscularReactionType, RigorType, LividityType, LividityDisappearanceType, \
     LividityMobilityType, BodyCondition, EnvironmentType, SupportingBase
 
@@ -9,6 +11,7 @@ class InputParameters:
     # Constructor
     def __init__(
             self,
+            reference_datetime: Optional[datetime] = None,
             tympanic_temperature: float = None,
             rectal_temperature: float = None,
             ambient_temperature: float = None,
@@ -28,6 +31,9 @@ class InputParameters:
         
         Parameters
         ----------
+        reference_datetime : Optional[datetime] # 
+            The reference datetime of measurement, if provided. Defaults to None.
+            
         tympanic_temperature : float
             Measured tympanic temperature (in °C)
         
@@ -50,6 +56,7 @@ class InputParameters:
         lividity_mobility : LividityMobilityType
         user_corrective_factor : float
         """
+        self.reference_datetime = reference_datetime
         self.tympanic_temperature = tympanic_temperature
         self.rectal_temperature = rectal_temperature
         self.ambient_temperature = ambient_temperature
@@ -66,6 +73,8 @@ class InputParameters:
 
     def __str__(self):
         members = []
+        if self.reference_datetime:
+            members.append(f"reference_datetime = {self.reference_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
         if self.tympanic_temperature:
             members.append(f"tympanic_temperature = {self.tympanic_temperature}°C")
         if self.rectal_temperature:
@@ -79,7 +88,7 @@ class InputParameters:
         if self.supporting_base:
             members.append(f"supporting_base = {self.supporting_base}")
         if self.idiomuscular_reaction:
-            members.append(f"idiomuscular_type = {self.idiomuscular_reaction}")
+            members.append(f"idiomuscular_reaction = {self.idiomuscular_reaction}")
         if self.rigor_type:
             members.append(f"rigor_type = {self.rigor_type}")
         if self.lividity:

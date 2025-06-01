@@ -1,6 +1,7 @@
 # core/output_results.py
 
 from typing import Optional
+from datetime import datetime
 import numpy as np
 
 from core import time_converter
@@ -14,7 +15,8 @@ class HenssgeRectalResults:
             confidence_interval: float = None,
             thermal_quotient: float = None,
             corrective_factor: float = None,
-            error_message: str = None
+            error_message: str = None,
+            ref_dt: Optional[datetime] = None
     ):
         """        
         Object encapsulating Henssge rectal output results
@@ -36,6 +38,7 @@ class HenssgeRectalResults:
         self.thermal_quotient = thermal_quotient
         self.corrective_factor = corrective_factor
         self.error_message = error_message
+        self.ref_dt = ref_dt 
 
     def pmi_min(self):
         return self.post_mortem_interval - self.confidence_interval
@@ -54,15 +57,15 @@ class HenssgeRectalResults:
 
         lines = [title]
         pmi_str = time_converter.format_pmi_range_string(
-            self.pmi_min(), self.pmi_max(), self.post_mortem_interval, prefix=""
+            self.pmi_min(), self.pmi_max(), self.ref_dt, self.post_mortem_interval
         )
-        if time_converter.get_reference_datetime() is not None and '[' in pmi_str:
+        if self.ref_dt is not None and '[' in pmi_str:
              parts = pmi_str.split('[')
              if len(parts) == 2:
                  interval = parts[1].replace(' - ', ' / ').replace(']', '')
                  pmi_str = f"{parts[0].strip()} [{interval}]"
 
-        label = "Estimated ToD" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
+        label = "Estimated ToD" if self.ref_dt is not None else "Estimated PMI"
         lines.append(f"- {label}: {pmi_str.strip()}")
 
         if self.confidence_interval is not None:
@@ -80,7 +83,8 @@ class HenssgeBrainResults:
             self,
             post_mortem_interval: float = None,
             confidence_interval: float = None,
-            error_message: str = None
+            error_message: str = None,
+            ref_dt: Optional[datetime] = None
     ):
         """
         
@@ -97,6 +101,7 @@ class HenssgeBrainResults:
         self.confidence_interval = confidence_interval
         self.post_mortem_interval = post_mortem_interval
         self.error_message = error_message
+        self.ref_dt = ref_dt 
 
     def pmi_min(self):
         return self.post_mortem_interval - self.confidence_interval
@@ -114,15 +119,15 @@ class HenssgeBrainResults:
 
         lines = [title]
         pmi_str = time_converter.format_pmi_range_string(
-            self.pmi_min(), self.pmi_max(), self.post_mortem_interval, prefix=""
+            self.pmi_min(), self.pmi_max(), self.ref_dt, self.post_mortem_interval
         )
-        if time_converter.get_reference_datetime() is not None and '[' in pmi_str:
+        if self.ref_dt is not None and '[' in pmi_str:
              parts = pmi_str.split('[')
              if len(parts) == 2:
                  interval = parts[1].replace(' - ', ' / ').replace(']', '')
                  pmi_str = f"{parts[0].strip()} [{interval}]"
 
-        label = "Estimated time of death" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
+        label = "Estimated ToD" if self.ref_dt is not None else "Estimated PMI"
         lines.append(f"- {label}: {pmi_str.strip()}")
         
         if self.confidence_interval is not None:
@@ -139,7 +144,8 @@ class BaccinoResults:
             post_mortem_interval_global: float = None,
             confidence_interval_interval: float = None,
             confidence_interval_global: float = None,
-            error_message: str = None
+            error_message: str = None,
+            ref_dt: Optional[datetime] = None
     ):
         """
         
@@ -164,6 +170,7 @@ class BaccinoResults:
         self.confidence_interval_interval = confidence_interval_interval
         self.confidence_interval_global = confidence_interval_global
         self.error_message = error_message
+        self.ref_dt = ref_dt
 
     def __str__(self):
         """
@@ -174,7 +181,7 @@ class BaccinoResults:
             return f"{title}\n{self.error_message}"
 
         lines = [title]
-        label = "Estimated time of death" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
+        label = "Estimated ToD" if self.ref_dt is not None else "Estimated PMI"
 
         # Interval Method
         if self.post_mortem_interval_interval is not None and self.confidence_interval_interval is not None:
@@ -182,8 +189,8 @@ class BaccinoResults:
             ci_int = self.confidence_interval_interval
             min_int = max(0.0, center_int - ci_int)
             max_int = center_int + ci_int
-            pmi_string_int = time_converter.format_pmi_range_string(min_int, max_int, center_int, prefix="")
-            if time_converter.get_reference_datetime() is not None and '[' in pmi_string_int:
+            pmi_string_int = time_converter.format_pmi_range_string(min_int, max_int, self.ref_dt, center_int)
+            if self.ref_dt is not None and '[' in pmi_string_int:
                  parts = pmi_string_int.split('[')
                  if len(parts) == 2:
                      interval = parts[1].replace(' - ', ' / ').replace(']', '')
@@ -196,8 +203,8 @@ class BaccinoResults:
             ci_glob = self.confidence_interval_global
             min_glob = max(0.0, center_glob - ci_glob)
             max_glob = center_glob + ci_glob
-            pmi_string_glob = time_converter.format_pmi_range_string(min_glob, max_glob, center_glob, prefix="")
-            if time_converter.get_reference_datetime() is not None and '[' in pmi_string_glob:
+            pmi_string_glob = time_converter.format_pmi_range_string(min_glob, max_glob, self.ref_dt, center_glob)
+            if self.ref_dt is not None and '[' in pmi_string_glob:
                  parts = pmi_string_glob.split('[')
                  if len(parts) == 2:
                      interval = parts[1].replace(' - ', ' / ').replace(']', '')
@@ -212,7 +219,8 @@ class PostMortemIntervalResults:
             self,
             name: str,
             min_max: tuple = (None, None),
-            error_message: str = None
+            error_message: str = None,
+            ref_dt: Optional[datetime] = None
     ):
         """
         
@@ -228,6 +236,7 @@ class PostMortemIntervalResults:
         self.min = min_max[0]
         self.max = min_max[1]
         self.error_message = error_message
+        self.ref_dt = ref_dt
 
     def __str__(self):
         # Display results as string
@@ -235,10 +244,10 @@ class PostMortemIntervalResults:
         if self.error_message:
             return f"{title}{self.error_message}"
 
-        label = "Estimated ToD" if time_converter.get_reference_datetime() is not None else "Estimated PMI"
+        label = "Estimated ToD" if self.ref_dt is not None else "Estimated PMI"
         Notspecified = "Not specified"
         pmi_value_string = time_converter.format_pmi_range_string(
-            self.min, self.max, prefix=""
+            self.min, self.max, self.ref_dt
         ).strip()
         if pmi_value_string == "Not specified" or not pmi_value_string: 
             return f"{title} Not specified"
